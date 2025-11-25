@@ -1,0 +1,46 @@
+<resources>
+    <string name="app_name">Readium</string>
+    
+    <!--autenticação-->
+    <string name="login_title">Faça seu login!</string>
+    <string name="register_title">Cadastre-se</string>
+    <string name="email_label">E-mail</string>
+    <string name="password_label">Senha</string>
+    <string name="name_label">Nome</string>
+    <string name="confirm_password_label">Confirmação de senha</string>
+    <string name="username_label">Nome de usuário</string>
+    <string name="biography_label">Biografia (opcional)</string>
+    <string name="profile_photo_label">foto de perfil</string>
+    
+    <!--botões-->
+    <string name="continue_button">Continuar</string>
+    <string name="login_button">Entrar</string>
+    <string name="register_button">Cadastrar</string>
+    <string name="forgot_password">Esqueceu a senha?</string>
+    
+    <!--links-->
+    <string name="already_have_account">Você já é cadastrado?</string>
+    <string name="make_login">Faça login</string>
+    <string name="no_account">Não tem conta?</string>
+    <string name="register_link">Cadastre-se</string>
+    
+    <!--login com redes sociais-->
+    <string name="or_login_with">ou faça login com</string>
+    
+    <!--erros-->
+    <string name="error_name_required">Nome é obrigatório</string>
+    <string name="error_email_required">E-mail é obrigatório</string>
+    <string name="error_email_invalid">E-mail inválido</string>
+    <string name="error_password_required">Senha é obrigatória</string>
+    <string name="error_password_min_length">Senha deve ter pelo menos 8 caracteres</string>
+    <string name="error_password_requirements">Senha deve conter letras e números</string>
+    <string name="error_passwords_not_match">Senhas não coincidem</string>
+    
+    <!--sucesso-->
+    <string name="registration_success">Cadastro realizado com sucesso!</string>
+    <string name="login_success">Login realizado com sucesso!</string>
+    
+    <!--firebase-->
+    <string name="firebase_connected">Conectado</string>
+    <string name="firebase_disconnected">Desconectado</string>
+</resources>
