@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Readium" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/readium_primary</item>
+        <item name="android:colorPrimaryDark">@color/readium_primary</item>
+        <item name="android:colorAccent">@color/readium_primary</item>
+        <item name="android:textColorPrimary">@color/readium_black</item>
+        <item name="android:textColorSecondary">@color/readium_black</item>
+        <item name="android:windowBackground">@color/readium_white</item>
+        <item name="android:colorBackground">@color/readium_white</item>
+        <item name="android:statusBarColor">@color/readium_primary</item>
+        <item name="android:navigationBarColor">@color/readium_primary</item>
+    </style>
+</resources>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--paleta de cores-->
+    <color name="readium_blue">#2E9AFE</color>
+    <color name="readium_blue_pastel">#89CFF0</color>
+    <color name="readium_mark">#FFCC00</color>
+    <color name="readium_background">#FAFAFA</color>
+    <color name="readium_gray_medium">#A5A7AC</color>
+    <color name="readium_error">#E57373</color>
+    <color name="readium_success">#4CAF50</color>
+    <color name="readium_white">#FFFFFF</color>
+    <color name="readium_black">#000000</color>
+    
+    
+    <color name="readium_primary">#2E9AFE</color>
+    <color name="readium_secondary">#89CFF0</color>
+    <color name="readium_surface">#FAFAFA</color>
+</resources>
