@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--cores principais-->
+    <color name="readium_primary">#FFD640</color>
+    <color name="readium_white">#FFFFFF</color>
+    <color name="readium_black">#000000</color>
+</resources>
