@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.readium.firebase.FirebaseConfig
-import com.example.readium.ui.theme.ReadiumTheme
+import com.example.readium.ui.theme.*
 import com.example.readium.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,9 +45,9 @@ fun ReadiumHomeScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFFF4B942),
-                    titleContentColor = Color.Black,
-                    actionIconContentColor = Color.Black
+                    containerColor = ReadiumPrimary,
+                    titleContentColor = ReadiumOnPrimary,
+                    actionIconContentColor = ReadiumOnPrimary
                 )
             )
         }
