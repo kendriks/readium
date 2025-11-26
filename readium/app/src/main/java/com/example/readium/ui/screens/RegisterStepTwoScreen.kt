@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.*
+import com.example.readium.ui.theme.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,13 +65,13 @@ fun RegisterStepTwoScreen(
             TopAppBar(
                 title = { },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Voltar",
-                            tint = Color.Black
-                        )
-                    }
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "Voltar",
+                                tint = ReadiumOnBackground
+                            )
+                        }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent
@@ -81,7 +82,7 @@ fun RegisterStepTwoScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                    .background(ReadiumBackground)
                 .padding(paddingValues)
                 .padding(24.dp),
             horizontalAlignment = Alignment.Start,
@@ -91,7 +92,7 @@ fun RegisterStepTwoScreen(
                 text = "Cadastre-se",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFFF4B942),
+                    color = ReadiumPrimary,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
             Row(
@@ -104,7 +105,7 @@ fun RegisterStepTwoScreen(
                     modifier = Modifier
                         .size(72.dp)
                         .clip(CircleShape)
-                        .border(2.dp, Color(0xFFF4B942), CircleShape)
+                        .border(2.dp, ReadiumPrimary, CircleShape)
                         .clickable {
                             //abre seletor de imagens
                             imagePickerLauncher.launch("image/*")
@@ -120,11 +121,11 @@ fun RegisterStepTwoScreen(
                                 .clip(CircleShape),
                             contentScale = ContentScale.Crop
                         )
-                    } else {
+                        } else {
                         Icon(
                             imageVector = Icons.Default.CameraAlt,
                             contentDescription = "Selecionar foto",
-                            tint = Color(0xFFF4B942),
+                            tint = ReadiumPrimary,
                             modifier = Modifier.size(32.dp)
                         )
                     }
@@ -137,24 +138,24 @@ fun RegisterStepTwoScreen(
                     Text(
                         text = "foto de perfil",
                         fontSize = 14.sp,
-                        color = Color(0xFFF4B942)
+                        color = ReadiumPrimary
                     )
 
                     Text(
                         text = "faça um upload dos seus arquivos ou tire uma foto agora.",
                         fontSize = 12.sp,
-                        color = Color.Gray,
+                        color = ReadiumOnSurface.copy(alpha = 0.7f),
                         modifier = Modifier.padding(top = 6.dp)
                     )
                 }
             }
-            Text(
-                text = "Nome de usuário",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.Black,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+                    Text(
+                        text = "Nome de usuário",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = ReadiumOnBackground,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
             OutlinedTextField(
                 value = username,
                 onValueChange = { username = it },
@@ -162,16 +163,16 @@ fun RegisterStepTwoScreen(
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
                 singleLine = true,
-                textStyle = LocalTextStyle.current.copy(color = Color.Black),
-                placeholder = { Text("@nome", color = Color(0xFF9E9E9E)) }
+                textStyle = LocalTextStyle.current.copy(color = ReadiumOnBackground),
+                placeholder = { Text("@nome", color = ReadiumOnSurface.copy(alpha = 0.6f)) }
             )
-            Text(
-                text = "Biografia (opcional)",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.Black,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+                    Text(
+                        text = "Biografia (opcional)",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = ReadiumOnBackground,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
             OutlinedTextField(
                 value = biography,
                 onValueChange = { biography = it },
@@ -180,8 +181,8 @@ fun RegisterStepTwoScreen(
                     .height(100.dp)
                     .padding(bottom = 16.dp),
                 maxLines = 3,
-                textStyle = LocalTextStyle.current.copy(color = Color.Black),
-                placeholder = { Text("Insira o texto aqui...", color = Color(0xFF9E9E9E)) }
+                textStyle = LocalTextStyle.current.copy(color = ReadiumOnBackground),
+                placeholder = { Text("Insira o texto aqui...", color = ReadiumOnSurface.copy(alpha = 0.6f)) }
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -194,13 +195,13 @@ fun RegisterStepTwoScreen(
                         .fillMaxWidth()
                         .padding(bottom = 16.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
+                        containerColor = ReadiumError
                     )
                 ) {
                     Text(
                         text = currentAuthState.message,
                         modifier = Modifier.padding(16.dp),
-                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        color = ReadiumWhite,
                         fontSize = 14.sp
                     )
                 }
@@ -224,19 +225,20 @@ fun RegisterStepTwoScreen(
                     .fillMaxWidth()
                     .height(48.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFF4B942)
+                    containerColor = ReadiumPrimary,
+                    contentColor = ReadiumOnPrimary
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
                 if (authState is AuthState.Loading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(20.dp),
-                        color = Color.White
+                        color = ReadiumOnPrimary
                     )
                 } else {
                     Text(
                         text = "Continuar",
-                        color = Color.White,
+                        color = ReadiumOnPrimary,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -253,12 +255,12 @@ fun RegisterStepTwoScreen(
                 Text(
                     text = "Você já é cadastrado? ",
                     fontSize = 14.sp,
-                    color = Color.Black
+                    color = ReadiumOnBackground
                 )
                 Text(
                     text = "Faça login",
                     fontSize = 14.sp,
-                    color = Color(0xFFF4B942),
+                    color = ReadiumPrimary,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.clickable { onNavigateBack /*ainda falta implementar para que ele volte diretamente para login*/ }
                 )

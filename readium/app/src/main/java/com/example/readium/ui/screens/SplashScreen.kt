@@ -16,7 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.readium.ui.theme.ReadiumTheme
+import com.example.readium.ui.theme.*
 import com.example.readium.viewmodel.AuthViewModel
 import com.example.readium.viewmodel.AuthState
 import kotlinx.coroutines.delay
@@ -43,7 +43,7 @@ fun SplashScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(ReadiumBackground)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -54,7 +54,7 @@ fun SplashScreen(
             text = "Readium",
             fontSize = 48.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.Black,
+            color = ReadiumPrimary,
             textAlign = TextAlign.Center
         )
         
@@ -74,15 +74,15 @@ fun SplashScreen(
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp),
-                    border = BorderStroke(1.dp, Color(0xFFF4B942)),
+                    border = BorderStroke(1.dp, ReadiumPrimary),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color.Black
+                        contentColor = ReadiumPrimary
                     )
                 ) {
                     Text(
                         text = "LOG IN",
-                        color = Color.Black,
+                        color = ReadiumPrimary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -96,8 +96,8 @@ fun SplashScreen(
                         .weight(1f)
                         .height(48.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Black,
-                        contentColor = Color.White
+                        containerColor = ReadiumPrimary,
+                        contentColor = ReadiumOnPrimary
                     ),
                     shape = RoundedCornerShape(8.dp)
                 ) {
@@ -110,7 +110,7 @@ fun SplashScreen(
             }
         } else if (authState is AuthState.Loading) {
             CircularProgressIndicator(
-                color = Color(0xFFF4B942),
+                color = ReadiumPrimary,
                 modifier = Modifier.size(40.dp)
             )
         }

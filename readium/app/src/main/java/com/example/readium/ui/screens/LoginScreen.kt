@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.readium.viewmodel.AuthViewModel
 import com.example.readium.viewmodel.AuthState
-import com.example.readium.ui.theme.ReadiumTheme
+import com.example.readium.ui.theme.*
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -141,7 +141,7 @@ fun LoginScreen(
             text = "Faça seu login!",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFFF4B942),
+                color = ReadiumPrimary,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 32.dp),
@@ -168,13 +168,13 @@ fun LoginScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             isError = emailError.isNotEmpty(),
             singleLine = true,
-            textStyle = LocalTextStyle.current.copy(color = Color.Black),
-            placeholder = { Text("Insira seu e-mail", color = Color(0xFF9E9E9E)) }
+            textStyle = LocalTextStyle.current.copy(color = ReadiumOnBackground),
+                placeholder = { Text("Insira seu e-mail", color = ReadiumOnSurface.copy(alpha = 0.6f)) }
         )
         if (emailError.isNotEmpty()) {
             Text(
                 text = emailError,
-                color = MaterialTheme.colorScheme.error,
+                color = ReadiumError,
                 fontSize = 12.sp,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -212,13 +212,13 @@ fun LoginScreen(
             },
             isError = passwordError.isNotEmpty(),
             singleLine = true,
-            textStyle = LocalTextStyle.current.copy(color = Color.Black),
-            placeholder = { Text("Insira sua senha", color = Color(0xFF9E9E9E)) }
+            textStyle = LocalTextStyle.current.copy(color = ReadiumOnBackground),
+                placeholder = { Text("Insira sua senha", color = ReadiumOnSurface.copy(alpha = 0.6f)) }
         )
         if (passwordError.isNotEmpty()) {
             Text(
                 text = passwordError,
-                color = MaterialTheme.colorScheme.error,
+                color = ReadiumError,
                 fontSize = 12.sp,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -232,7 +232,7 @@ fun LoginScreen(
         ) {
             Text(
                 text = "Esqueceu a senha?",
-                color = Color(0xFFF4B942),
+                    color = ReadiumPrimary,
                 fontSize = 14.sp
             )
         }
@@ -247,13 +247,13 @@ fun LoginScreen(
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer
+                    containerColor = ReadiumError
                 )
             ) {
                 Text(
                     text = currentAuthState.message,
                     modifier = Modifier.padding(16.dp),
-                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    color = ReadiumWhite,
                     fontSize = 14.sp
                 )
             }
@@ -270,18 +270,19 @@ fun LoginScreen(
                 .fillMaxWidth()
                 .height(48.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFF4B942)
+                    containerColor = ReadiumPrimary,
+                    contentColor = ReadiumOnPrimary
             )
         ) {
             if (authState is AuthState.Loading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(20.dp),
-                    color = Color.White
+                        color = ReadiumOnPrimary
                 )
             } else {
                 Text(
                     text = "Entrar",
-                    color = Color.White,
+                        color = ReadiumOnPrimary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -298,7 +299,7 @@ fun LoginScreen(
                 text = "ou faça login com",
                 modifier = Modifier.padding(horizontal = 16.dp),
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = ReadiumOnSurface.copy(alpha = 0.7f)
             )
             HorizontalDivider(modifier = Modifier.weight(1f))
         }
@@ -311,7 +312,7 @@ fun LoginScreen(
                 onClick = { handleGoogleSignIn() },
                 modifier = Modifier
                     .size(60.dp)
-                    .border(1.dp, Color.Gray, CircleShape)
+                        .border(1.dp, ReadiumOnSurface.copy(alpha = 0.5f), CircleShape)
                     .padding(8.dp)
             ) {
                 Icon(
@@ -336,7 +337,7 @@ fun LoginScreen(
             Text(
                 text = "Cadastre-se",
                 fontSize = 14.sp,
-                color = Color(0xFFF4B942),
+                    color = ReadiumPrimary,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.clickable { onNavigateToRegister() }
             )

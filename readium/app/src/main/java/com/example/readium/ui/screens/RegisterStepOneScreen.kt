@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
+import com.example.readium.ui.theme.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -96,7 +97,7 @@ fun RegisterStepOneScreen(
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Voltar",
-                            tint = Color.Black
+                            tint = ReadiumOnBackground
                         )
                     }
                 },
@@ -109,7 +110,7 @@ fun RegisterStepOneScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(ReadiumBackground)
                 .padding(paddingValues)
                 .padding(24.dp),
             horizontalAlignment = Alignment.Start,
@@ -119,14 +120,14 @@ fun RegisterStepOneScreen(
                 text = "Cadastre-se",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFFF4B942),
+                color = ReadiumPrimary,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
             Text(
                 text = "Nome",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color.Black,
+                color = ReadiumOnBackground,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             OutlinedTextField(
@@ -140,13 +141,13 @@ fun RegisterStepOneScreen(
                     .padding(bottom = if (nameError.isNotEmpty()) 4.dp else 16.dp),
                 isError = nameError.isNotEmpty(),
                 singleLine = true,
-                textStyle = LocalTextStyle.current.copy(color = Color.Black),
-                placeholder = { Text("Nome", color = Color(0xFF9E9E9E)) }
+                textStyle = LocalTextStyle.current.copy(color = ReadiumOnBackground),
+                placeholder = { Text("Nome", color = ReadiumOnSurface.copy(alpha = 0.6f)) }
             )
             if (nameError.isNotEmpty()) {
                 Text(
                     text = nameError,
-                    color = MaterialTheme.colorScheme.error,
+                    color = ReadiumError,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
@@ -155,7 +156,7 @@ fun RegisterStepOneScreen(
                 text = "E-mail",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color.Black,
+                color = ReadiumOnBackground,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             OutlinedTextField(
@@ -170,13 +171,13 @@ fun RegisterStepOneScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 isError = emailError.isNotEmpty(),
                 singleLine = true,
-                textStyle = LocalTextStyle.current.copy(color = Color.Black),
-                placeholder = { Text("nome@email.com", color = Color(0xFF9E9E9E)) }
+                textStyle = LocalTextStyle.current.copy(color = ReadiumOnBackground),
+                placeholder = { Text("nome@email.com", color = ReadiumOnSurface.copy(alpha = 0.6f)) }
             )
             if (emailError.isNotEmpty()) {
                 Text(
                     text = emailError,
-                    color = MaterialTheme.colorScheme.error,
+                    color = ReadiumError,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
@@ -185,7 +186,7 @@ fun RegisterStepOneScreen(
                 text = "Senha",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color.Black,
+                color = ReadiumOnBackground,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             OutlinedTextField(
@@ -209,13 +210,13 @@ fun RegisterStepOneScreen(
                 },
                 isError = passwordError.isNotEmpty(),
                 singleLine = true,
-                textStyle = LocalTextStyle.current.copy(color = Color.Black),
-                placeholder = { Text("Insira sua senha", color = Color(0xFF9E9E9E)) }
+                textStyle = LocalTextStyle.current.copy(color = ReadiumOnBackground),
+                placeholder = { Text("Insira sua senha", color = ReadiumOnSurface.copy(alpha = 0.6f)) }
             )
             if (passwordError.isNotEmpty()) {
                 Text(
                     text = passwordError,
-                    color = MaterialTheme.colorScheme.error,
+                    color = ReadiumError,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
@@ -224,7 +225,7 @@ fun RegisterStepOneScreen(
                 text = "Confirmação de senha",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color.Black,
+                color = ReadiumOnBackground,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             OutlinedTextField(
@@ -248,13 +249,13 @@ fun RegisterStepOneScreen(
                 },
                 isError = confirmPasswordError.isNotEmpty(),
                 singleLine = true,
-                textStyle = LocalTextStyle.current.copy(color = Color.Black),
-                placeholder = { Text("Confirme sua senha", color = Color(0xFF9E9E9E)) }
+                textStyle = LocalTextStyle.current.copy(color = ReadiumOnBackground),
+                placeholder = { Text("Confirme sua senha", color = ReadiumOnSurface.copy(alpha = 0.6f)) }
             )
             if (confirmPasswordError.isNotEmpty()) {
                 Text(
                     text = confirmPasswordError,
-                    color = MaterialTheme.colorScheme.error,
+                    color = ReadiumError,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(bottom = 32.dp)
                 )
@@ -273,12 +274,13 @@ fun RegisterStepOneScreen(
                     .height(48.dp),
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFF4B942)
+                    containerColor = ReadiumPrimary,
+                    contentColor = ReadiumOnPrimary
                 )
             ) {
                 Text(
                     text = "Continuar",
-                    color = Color.White,
+                    color = ReadiumOnPrimary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -293,12 +295,12 @@ fun RegisterStepOneScreen(
                 Text(
                     text = "Você já é cadastrado? ",
                     fontSize = 14.sp,
-                    color = Color.Black
+                    color = ReadiumOnBackground
                 )
                 Text(
                     text = "Faça login",
                     fontSize = 14.sp,
-                    color = Color(0xFFF4B942),
+                    color = ReadiumPrimary,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.clickable { onNavigateBack() }
                 )
