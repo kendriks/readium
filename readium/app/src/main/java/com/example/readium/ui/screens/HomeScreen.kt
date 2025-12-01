@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -40,6 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 @Composable
 fun ReadiumHomeScreen(
     onLogout: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {},
     authViewModel: AuthViewModel = viewModel()
 ) {
     val userProfile by authViewModel.userProfile.collectAsState()
@@ -129,72 +131,12 @@ fun ReadiumHomeScreen(
             }
         },
         bottomBar = {
-            //barra inferior
-            Surface(
-                color = ReadiumWhite,
-                tonalElevation = 4.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    //home
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { /*ainda não implementado*/ }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Home,
-                            contentDescription = "home",
-                            tint = ReadiumGrayMedium,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Text(text = "home", fontSize = 12.sp, color = ReadiumGrayMedium)
-                    }
-
-                    //criar
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { /*ainda não implementado*/ }
-                    ) {
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = ReadiumWhite,
-                            border = BorderStroke(1.dp, ReadiumGrayMedium),
-                            modifier = Modifier.size(44.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "criar",
-                                    tint = ReadiumGrayMedium,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(text = "criar", fontSize = 12.sp, color = ReadiumGrayMedium)
-                    }
-
-                    //perfil
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { /*ainda não implementado*/ }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "perfil",
-                            tint = ReadiumGrayMedium,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Text(text = "perfil", fontSize = 12.sp, color = ReadiumGrayMedium)
-                    }
-                }
-            }
+            ReadiumBottomBar(
+                selectedItem = 0,
+                onHomeClick = { },
+                onCreateClick = { /*ainda não implementado*/ },
+                onProfileClick = onNavigateToProfile
+            )
         }
     ) { paddingValues ->
             LazyColumn(
@@ -244,6 +186,73 @@ fun ReadiumHomeScreen(
                 Spacer(modifier = Modifier.height(80.dp))
             }
         }
+    }
+}
+
+@Composable
+private fun ReadiumBottomBar(
+    selectedItem: Int,
+    onHomeClick: () -> Unit,
+    onCreateClick: () -> Unit,
+    onProfileClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(64.dp)
+            .background(ReadiumWhite)
+            .border(1.dp, ReadiumGrayMedium.copy(alpha = 0.2f)),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        BottomBarItem(
+            icon = Icons.Outlined.Home,
+            label = "home",
+            isSelected = selectedItem == 0,
+            onClick = onHomeClick
+        )
+
+        BottomBarItem(
+            icon = Icons.Outlined.AddBox,
+            label = "criar",
+            isSelected = selectedItem == 1,
+            onClick = onCreateClick
+        )
+
+        BottomBarItem(
+            icon = Icons.Outlined.Person,
+            label = "perfil",
+            isSelected = selectedItem == 2,
+            onClick = onProfileClick
+        )
+    }
+}
+
+@Composable
+private fun BottomBarItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            tint = if (isSelected) ReadiumPrimary else ReadiumGrayMedium,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            color = if (isSelected) ReadiumPrimary else ReadiumGrayMedium
+        )
     }
 }
 
