@@ -13,6 +13,7 @@ import com.example.readium.ui.screens.LoginScreen
 import com.example.readium.ui.screens.RegisterStepOneScreen
 import com.example.readium.ui.screens.RegisterStepTwoScreen
 import com.example.readium.ui.screens.ReadiumHomeScreen
+import com.example.readium.ui.screens.ProfileScreen
 import com.example.readium.viewmodel.AuthViewModel
 import com.example.readium.viewmodel.AuthState
 
@@ -26,6 +27,7 @@ sealed class Screen(val route: String) {
         }
     }
     object Home : Screen("home")
+    object Profile : Screen("profile")
 }
 
 @Composable
@@ -119,6 +121,22 @@ fun ReadiumNavigation(
                     authViewModel.signOut()
                     navController.navigate(Screen.Splash.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Screen.Profile.route)
+                }
+            )
+        }
+
+        composable(Screen.Profile.route) {
+            ProfileScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Profile.route) { inclusive = true }
                     }
                 }
             )
