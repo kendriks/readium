@@ -80,7 +80,7 @@ fun LoginScreen(
         }
     }
     
-    //bserva estado de autenticação
+    //observa estado de autenticação
     LaunchedEffect(authState) {
         when (authState) {
             is AuthState.Authenticated -> {
