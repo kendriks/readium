@@ -15,6 +15,8 @@ import com.example.readium.ui.screens.RegisterStepTwoScreen
 import com.example.readium.ui.screens.ReadiumHomeScreen
 import com.example.readium.ui.screens.ProfileScreen
 import com.example.readium.ui.screens.EditProfileScreen
+import com.example.readium.ui.screens.CreateBookClubScreen1
+import com.example.readium.ui.screens.CreateBookClubScreen2
 import com.example.readium.viewmodel.AuthViewModel
 import com.example.readium.viewmodel.AuthState
 
@@ -30,6 +32,8 @@ sealed class Screen(val route: String) {
     object Home : Screen("home")
     object Profile : Screen("profile")
     object EditProfile : Screen("edit_profile")
+    object CreateBookClub1 : Screen("create_book_club_1")
+    object CreateBookClub2 : Screen("create_book_club_2")
 }
 
 @Composable
@@ -127,6 +131,9 @@ fun ReadiumNavigation(
                 },
                 onNavigateToProfile = {
                     navController.navigate(Screen.Profile.route)
+                },
+                onNavigateToCreateClub = {
+                    navController.navigate(Screen.CreateBookClub1.route)
                 }
             )
         }
@@ -155,6 +162,40 @@ fun ReadiumNavigation(
                 onNavigateToHome = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.EditProfile.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.CreateBookClub1.route) {
+            CreateBookClubScreen1(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToNext = {
+                    navController.navigate(Screen.CreateBookClub2.route)
+                },
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.CreateBookClub1.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.CreateBookClub2.route) {
+            CreateBookClubScreen2(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onCreateClub = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.CreateBookClub2.route) { inclusive = true }
+                    }
+                },
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.CreateBookClub2.route) { inclusive = true }
                     }
                 }
             )
