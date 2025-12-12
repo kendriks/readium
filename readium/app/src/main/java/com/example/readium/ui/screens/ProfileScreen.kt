@@ -34,7 +34,8 @@ fun ProfileScreen(
     booksCount: Int = 19,
     friendsCount: Int = 89,
     onNavigateBack: () -> Unit = {},
-    onNavigateToHome: () -> Unit = {}
+    onNavigateToHome: () -> Unit = {},
+    onNavigateToFriends: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(0) }
 
@@ -83,9 +84,9 @@ fun ProfileScreen(
                             modifier = Modifier.weight(1f),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            StatItem(count = postsCount, label = "postagens")
-                            StatItem(count = booksCount, label = "livros")
-                            StatItem(count = friendsCount, label = "amigos")
+                            StatItem(count = postsCount, label = "postagens", onClick = {})
+                            StatItem(count = booksCount, label = "livros", onClick = {})
+                            StatItem(count = friendsCount, label = "amigos", onClick = onNavigateToFriends)
                         }
                     }
 
@@ -254,9 +255,10 @@ private fun ProfileTopBar(onNavigateBack: () -> Unit) {
 }
 
 @Composable
-private fun StatItem(count: Int, label: String) {
+private fun StatItem(count: Int, label: String, onClick: () -> Unit) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(onClick = onClick)
     ) {
         Text(
             text = count.toString(),
