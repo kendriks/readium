@@ -8,6 +8,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.readium.ui.screens.AddBooksOnListScreen
+import com.example.readium.ui.screens.CreateThematicListScreen
 import com.example.readium.ui.screens.SplashScreen
 import com.example.readium.ui.screens.LoginScreen
 import com.example.readium.ui.screens.RegisterStepOneScreen
@@ -30,6 +32,12 @@ sealed class Screen(val route: String) {
     object Home : Screen("home")
     object Profile : Screen("profile")
     object Friends : Screen("friends")
+    object CreateThematicList : Screen("newThematicList")
+    object AddBooksOnList : Screen("addBooksOnList/{nome}/{descricao}") {
+        fun createRoute(nome: String, descricao: String): String {
+            return "addBooksOnList/$nome/$descricao"
+        }
+    }
 }
 
 @Composable
@@ -143,6 +151,9 @@ fun ReadiumNavigation(
                 },
                 onNavigateToFriends = {
                     navController.navigate(Screen.Friends.route)
+                },
+                onNavigateToCreateThematicList = {
+                    navController.navigate((Screen.CreateThematicList.route))
                 }
             )
         }
@@ -162,5 +173,51 @@ fun ReadiumNavigation(
                 }
             )
         }
+
+        composable(Screen.CreateThematicList.route) {
+            CreateThematicListScreen (
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Screen.Profile.route) {
+                        popUpTo(Screen.Profile.route) { inclusive = true }
+                    }
+                },
+                onNavigateToAddBookScreen = { nome, descricao ->
+                    val route = Screen.AddBooksOnList.createRoute(nome, descricao)
+                    navController.navigate(route)
+                }
+            )
+        }
+
+        composable(Screen.AddBooksOnList.route) { backStackEntry ->
+            val name = backStackEntry.arguments?.getString("nome") ?: ""
+            val description = backStackEntry.arguments?.getString("descricao") ?: ""
+
+            AddBooksOnListScreen(
+                nomeListaEncoded = name,
+                descricaoListaEncoded = description,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Screen.Profile.route) {
+                        popUpTo(Screen.Profile.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
     }
 }
