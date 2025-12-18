@@ -35,13 +35,17 @@ fun ProfileScreen(
     friendsCount: Int = 89,
     onNavigateBack: () -> Unit = {},
     onNavigateToHome: () -> Unit = {},
-    onNavigateToFriends: () -> Unit = {}
+    onNavigateToFriends: () -> Unit = {},
+    onNavigateToEditProfile: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(0) }
 
     Scaffold(
         topBar = {
-            ProfileTopBar(onNavigateBack = onNavigateBack)
+            ProfileTopBar(
+                onNavigateBack = onNavigateBack,
+                onNavigateToSettings = onNavigateToEditProfile
+            )
         },
         bottomBar = {
             ReadiumBottomBar(
@@ -140,7 +144,7 @@ fun ProfileScreen(
             //conteúdo das abas
             when (selectedTab) {
                 0 -> {
-                    // Tab de postagens
+                    //aba de postagens
                     items(3) { index ->
                         PostCard(
                             userName = userName,
@@ -203,7 +207,10 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun ProfileTopBar(onNavigateBack: () -> Unit) {
+private fun ProfileTopBar(
+    onNavigateBack: () -> Unit,
+    onNavigateToSettings: () -> Unit = {}
+) {
     Box(modifier = Modifier.fillMaxWidth().padding(top = 34.dp, bottom = 0.dp)) {
         Surface(
             modifier = Modifier
@@ -235,7 +242,7 @@ private fun ProfileTopBar(onNavigateBack: () -> Unit) {
                     modifier = Modifier.weight(1f)
                 )
 
-                IconButton(onClick = { /*ainda não implementado*/ }) {
+                IconButton(onClick = onNavigateToSettings) {
                     Icon(
                         imageVector = Icons.Default.Settings,
                         contentDescription = "Configurações",
