@@ -42,7 +42,7 @@ import androidx.compose.ui.text.style.TextOverflow
 fun ReadiumHomeScreen(
     onLogout: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
-    onNavigateToCreateClub: () -> Unit = {},
+    onNavigateToBookClubs: () -> Unit = {},
     authViewModel: AuthViewModel = viewModel()
 ) {
     val userProfile by authViewModel.userProfile.collectAsState()
@@ -105,7 +105,7 @@ fun ReadiumHomeScreen(
                             shape = RoundedCornerShape(8.dp),
                             color = ReadiumPrimary
                         ) {
-                            IconButton(onClick = { onNavigateToCreateClub() }) {
+                            IconButton(onClick = { onNavigateToBookClubs() }) {
                                 Icon(
                                     imageVector = Icons.Default.MenuBook,
                                     contentDescription = "livro",

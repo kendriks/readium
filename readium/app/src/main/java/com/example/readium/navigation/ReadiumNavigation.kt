@@ -8,6 +8,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.readium.ui.screens.BookClubsScreen
+import com.example.readium.ui.screens.SearchBookClubsScreen
 import com.example.readium.ui.screens.SplashScreen
 import com.example.readium.ui.screens.LoginScreen
 import com.example.readium.ui.screens.RegisterStepOneScreen
@@ -36,6 +38,8 @@ sealed class Screen(val route: String) {
     object CreateBookClub1 : Screen("create_book_club_1")
     object CreateBookClub2 : Screen("create_book_club_2")
     object Friends : Screen("friends")
+    object BookClubs: Screen("book_clubs")
+    object SearchBookClubs: Screen("search_book_clubs")
 
 }
 
@@ -135,8 +139,8 @@ fun ReadiumNavigation(
                 onNavigateToProfile = {
                     navController.navigate(Screen.Profile.route)
                 },
-                onNavigateToCreateClub = {
-                    navController.navigate(Screen.CreateBookClub1.route)
+                onNavigateToBookClubs = {
+                    navController.navigate(Screen.BookClubs.route)
                 }
             )
         }
@@ -217,6 +221,28 @@ fun ReadiumNavigation(
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.CreateBookClub2.route) { inclusive = true }
                     }
+                }
+            )
+        }
+
+        composable(Screen.BookClubs.route) {
+            BookClubsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToCreateClub = {
+                    navController.navigate(Screen.CreateBookClub1.route)
+                },
+                onNavigateToSearchClubs = {
+                    navController.navigate(Screen.SearchBookClubs.route)
+                }
+            )
+        }
+
+        composable(Screen.SearchBookClubs.route){
+            SearchBookClubsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }
