@@ -8,18 +8,30 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+ feature/entrar-clube
 import com.example.readium.ui.screens.BookClubsScreen
 import com.example.readium.ui.screens.SearchBookClubsScreen
+
+import com.example.readium.ui.screens.AddBooksOnListScreen
+import com.example.readium.ui.screens.CreateThematicListScreen
+ main
 import com.example.readium.ui.screens.SplashScreen
 import com.example.readium.ui.screens.LoginScreen
 import com.example.readium.ui.screens.RegisterStepOneScreen
 import com.example.readium.ui.screens.RegisterStepTwoScreen
 import com.example.readium.ui.screens.ReadiumHomeScreen
 import com.example.readium.ui.screens.ProfileScreen
+ feature/entrar-clube
 import com.example.readium.ui.screens.EditProfileScreen
 import com.example.readium.ui.screens.CreateBookClubScreen1
 import com.example.readium.ui.screens.CreateBookClubScreen2
+
+ feature/editar-perfil
+import com.example.readium.ui.screens.EditProfileScreen
+
+ main
 import com.example.readium.ui.screens.FriendsScreen
+ main
 import com.example.readium.viewmodel.AuthViewModel
 import com.example.readium.viewmodel.AuthState
 
@@ -34,6 +46,7 @@ sealed class Screen(val route: String) {
     }
     object Home : Screen("home")
     object Profile : Screen("profile")
+ feature/entrar-clube
     object EditProfile : Screen("edit_profile")
     object CreateBookClub1 : Screen("create_book_club_1")
     object CreateBookClub2 : Screen("create_book_club_2")
@@ -41,6 +54,19 @@ sealed class Screen(val route: String) {
     object BookClubs: Screen("book_clubs")
     object SearchBookClubs: Screen("search_book_clubs")
 
+
+feature/editar-perfil
+    object EditProfile : Screen("edit_profile")
+
+    object Friends : Screen("friends")
+    object CreateThematicList : Screen("newThematicList")
+    object AddBooksOnList : Screen("addBooksOnList/{nome}/{descricao}") {
+        fun createRoute(nome: String, descricao: String): String {
+            return "addBooksOnList/$nome/$descricao"
+        }
+    }
+ main
+ main
 }
 
 @Composable
@@ -155,11 +181,27 @@ fun ReadiumNavigation(
                         popUpTo(Screen.Profile.route) { inclusive = true }
                     }
                 },
+ feature/entrar-clube
                 onNavigateToEditProfile = {
                     navController.navigate(Screen.EditProfile.route)
                 },
+
+ feature/editar-perfil
+                onNavigateToEditProfile = {
+                    navController.navigate(Screen.EditProfile.route)
+                }
+            )
+        }
+
+        composable(Screen.EditProfile.route) {
+            EditProfileScreen(
+
+ main
                 onNavigateToFriends = {
                     navController.navigate(Screen.Friends.route)
+                },
+                onNavigateToCreateThematicList = {
+                    navController.navigate((Screen.CreateThematicList.route))
                 }
             )
         }
@@ -178,13 +220,20 @@ fun ReadiumNavigation(
                 }
             )
         }
+ feature/entrar-clube
         composable(Screen.EditProfile.route) {
             EditProfileScreen(
+
+
+        composable(Screen.CreateThematicList.route) {
+            CreateThematicListScreen (
+ main
                 onNavigateBack = {
                     navController.popBackStack()
                 },
                 onNavigateToHome = {
                     navController.navigate(Screen.Home.route) {
+ feature/entrar-clube
                         popUpTo(Screen.EditProfile.route) { inclusive = true }
                     }
                 }
@@ -243,6 +292,46 @@ fun ReadiumNavigation(
             SearchBookClubsScreen(
                 onNavigateBack = {
                     navController.popBackStack()
+
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Screen.Profile.route) {
+                        popUpTo(Screen.Profile.route) { inclusive = true }
+                    }
+                },
+                onNavigateToAddBookScreen = { nome, descricao ->
+                    val route = Screen.AddBooksOnList.createRoute(nome, descricao)
+                    navController.navigate(route)
+                }
+            )
+        }
+
+        composable(Screen.AddBooksOnList.route) { backStackEntry ->
+            val name = backStackEntry.arguments?.getString("nome") ?: ""
+            val description = backStackEntry.arguments?.getString("descricao") ?: ""
+
+            AddBooksOnListScreen(
+                nomeListaEncoded = name,
+                descricaoListaEncoded = description,
+ main
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+feature/editar-perfil
+
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Screen.Profile.route) {
+                        popUpTo(Screen.Profile.route) { inclusive = true }
+ main
+                    }
+ main
                 }
             )
         }
