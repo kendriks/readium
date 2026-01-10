@@ -112,7 +112,7 @@ fun FriendsScreen(
                 if (visualizandoAmigos) {
                     FriendsList(friends = amigos)
                 } else {
-                    FriendsSolicitationScreen() // você já tinha isso
+                    FriendsSolicitationScreen()
                 }
             }
         }
