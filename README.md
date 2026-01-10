@@ -16,7 +16,7 @@ O sistema permite que os usuários **criem postagens sobre livros, interajam com
 
 Natan dos Santos - jnatansb   
 Kendriks da Paixão - kendriks  
-
+José Zildemar - JuniorNascimento777
 ---
 
 ## 🚀 Objetivo do Projeto

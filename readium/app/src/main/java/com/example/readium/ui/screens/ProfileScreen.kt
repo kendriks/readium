@@ -35,7 +35,12 @@ fun ProfileScreen(
     friendsCount: Int = 89,
     onNavigateBack: () -> Unit = {},
     onNavigateToHome: () -> Unit = {},
+feature/editar-perfil
     onNavigateToEditProfile: () -> Unit = {}
+
+    onNavigateToFriends: () -> Unit = {},
+    onNavigateToCreateThematicList: () -> Unit
+ main
 ) {
     var selectedTab by remember { mutableStateOf(0) }
 
@@ -87,9 +92,9 @@ fun ProfileScreen(
                             modifier = Modifier.weight(1f),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            StatItem(count = postsCount, label = "postagens")
-                            StatItem(count = booksCount, label = "livros")
-                            StatItem(count = friendsCount, label = "amigos")
+                            StatItem(count = postsCount, label = "postagens", onClick = {})
+                            StatItem(count = booksCount, label = "livros", onClick = {})
+                            StatItem(count = friendsCount, label = "amigos", onClick = onNavigateToFriends)
                         }
                     }
 
@@ -168,7 +173,7 @@ fun ProfileScreen(
                         ) {
                             //nova lista
                             OutlinedButton(
-                                onClick = { /*ainda não implementado*/ },
+                                onClick = onNavigateToCreateThematicList,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(48.dp),
@@ -261,9 +266,10 @@ private fun ProfileTopBar(
 }
 
 @Composable
-private fun StatItem(count: Int, label: String) {
+private fun StatItem(count: Int, label: String, onClick: () -> Unit) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(onClick = onClick)
     ) {
         Text(
             text = count.toString(),

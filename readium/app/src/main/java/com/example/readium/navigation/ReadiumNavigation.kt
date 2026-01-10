@@ -8,13 +8,19 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.readium.ui.screens.AddBooksOnListScreen
+import com.example.readium.ui.screens.CreateThematicListScreen
 import com.example.readium.ui.screens.SplashScreen
 import com.example.readium.ui.screens.LoginScreen
 import com.example.readium.ui.screens.RegisterStepOneScreen
 import com.example.readium.ui.screens.RegisterStepTwoScreen
 import com.example.readium.ui.screens.ReadiumHomeScreen
 import com.example.readium.ui.screens.ProfileScreen
+ feature/editar-perfil
 import com.example.readium.ui.screens.EditProfileScreen
+
+import com.example.readium.ui.screens.FriendsScreen
+ main
 import com.example.readium.viewmodel.AuthViewModel
 import com.example.readium.viewmodel.AuthState
 
@@ -29,7 +35,17 @@ sealed class Screen(val route: String) {
     }
     object Home : Screen("home")
     object Profile : Screen("profile")
+feature/editar-perfil
     object EditProfile : Screen("edit_profile")
+
+    object Friends : Screen("friends")
+    object CreateThematicList : Screen("newThematicList")
+    object AddBooksOnList : Screen("addBooksOnList/{nome}/{descricao}") {
+        fun createRoute(nome: String, descricao: String): String {
+            return "addBooksOnList/$nome/$descricao"
+        }
+    }
+ main
 }
 
 @Composable
@@ -141,6 +157,7 @@ fun ReadiumNavigation(
                         popUpTo(Screen.Profile.route) { inclusive = true }
                     }
                 },
+ feature/editar-perfil
                 onNavigateToEditProfile = {
                     navController.navigate(Screen.EditProfile.route)
                 }
@@ -149,15 +166,80 @@ fun ReadiumNavigation(
 
         composable(Screen.EditProfile.route) {
             EditProfileScreen(
+
+                onNavigateToFriends = {
+                    navController.navigate(Screen.Friends.route)
+                },
+                onNavigateToCreateThematicList = {
+                    navController.navigate((Screen.CreateThematicList.route))
+                }
+            )
+        }
+
+        composable(Screen.Friends.route) {
+            FriendsScreen(
                 onNavigateBack = {
                     navController.popBackStack()
                 },
                 onNavigateToHome = {
                     navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.EditProfile.route) { inclusive = true }
+                        popUpTo(Screen.Profile.route) { inclusive = true }
+                    }
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Screen.Profile.route)
+                }
+            )
+        }
+
+        composable(Screen.CreateThematicList.route) {
+            CreateThematicListScreen (
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Screen.Profile.route) {
+                        popUpTo(Screen.Profile.route) { inclusive = true }
+                    }
+                },
+                onNavigateToAddBookScreen = { nome, descricao ->
+                    val route = Screen.AddBooksOnList.createRoute(nome, descricao)
+                    navController.navigate(route)
+                }
+            )
+        }
+
+        composable(Screen.AddBooksOnList.route) { backStackEntry ->
+            val name = backStackEntry.arguments?.getString("nome") ?: ""
+            val description = backStackEntry.arguments?.getString("descricao") ?: ""
+
+            AddBooksOnListScreen(
+                nomeListaEncoded = name,
+                descricaoListaEncoded = description,
+ main
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+feature/editar-perfil
+
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Screen.Profile.route) {
+                        popUpTo(Screen.Profile.route) { inclusive = true }
+ main
                     }
                 }
             )
         }
+
     }
 }
