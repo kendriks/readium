@@ -25,33 +25,28 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.readium.ui.theme.*
+import coil.compose.AsyncImage
 
 @Composable
 fun ProfileScreen(
     userName: String = "name",
     userBio: String = "book lover <3",
+    userPhotoUrl: String? = null,
     postsCount: Int = 13,
     booksCount: Int = 19,
     friendsCount: Int = 89,
     onNavigateBack: () -> Unit = {},
     onNavigateToHome: () -> Unit = {},
- feature/entrar-clube
     onNavigateToFriends: () -> Unit = {},
-    onNavigateToEditProfile: () -> Unit = {}
-
-feature/editar-perfil
-    onNavigateToEditProfile: () -> Unit = {}
-
-    onNavigateToFriends: () -> Unit = {},
-    onNavigateToCreateThematicList: () -> Unit
- main
- main
+    onNavigateToEditProfile: () -> Unit = {},
+    onNavigateToCreateThematicList: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(0) }
 
     Scaffold(
         topBar = {
             ProfileTopBar(
+                userName = userName,
                 onNavigateBack = onNavigateBack,
                 onNavigateToSettings = onNavigateToEditProfile
             )
@@ -88,7 +83,18 @@ feature/editar-perfil
                                 .size(72.dp)
                                 .clip(CircleShape)
                                 .background(ReadiumGrayMedium)
-                        )
+                        ) {
+                            if (!userPhotoUrl.isNullOrEmpty()) {
+                                AsyncImage(
+                                    model = userPhotoUrl,
+                                    contentDescription = "Foto de perfil",
+                                    modifier = Modifier
+                                        .size(72.dp)
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+                        }
 
                         Spacer(modifier = Modifier.width(24.dp))
 
@@ -157,6 +163,7 @@ feature/editar-perfil
                     items(3) { index ->
                         PostCard(
                             userName = userName,
+                            userPhotoUrl = userPhotoUrl,
                             timeAgo = "há 14 minutos",
                             postText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras eget lorem nec ante iaculis interdum eget in purus.",
                             bookTitle = if (index == 2) "O admirável histórico de leitura" else null,
@@ -217,6 +224,7 @@ feature/editar-perfil
 
 @Composable
 private fun ProfileTopBar(
+    userName: String = "name",
     onNavigateBack: () -> Unit,
     onNavigateToSettings: () -> Unit = {}
 ) {
@@ -244,7 +252,7 @@ private fun ProfileTopBar(
                 }
 
                 Text(
-                    text = "@name",
+                    text = "@${userName}",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = ReadiumWhite,
@@ -293,6 +301,7 @@ private fun StatItem(count: Int, label: String, onClick: () -> Unit) {
 @Composable
 private fun PostCard(
     userName: String,
+    userPhotoUrl: String? = null,
     timeAgo: String,
     postText: String,
     bookTitle: String? = null,
@@ -322,7 +331,18 @@ private fun PostCard(
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(ReadiumGrayMedium)
-                )
+                ) {
+                    if (!userPhotoUrl.isNullOrEmpty()) {
+                        AsyncImage(
+                            model = userPhotoUrl,
+                            contentDescription = "Foto de perfil",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.width(12.dp))
 
