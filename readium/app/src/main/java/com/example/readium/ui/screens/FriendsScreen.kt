@@ -1,5 +1,7 @@
 package com.example.readium.ui.screens
 
+import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,31 +21,27 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.readium.ui.theme.*
 import com.example.readium.data.User
+import com.example.readium.viewmodel.FriendsViewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun FriendsScreen(
     onNavigateBack: () -> Unit = {},
     onNavigateToHome: () -> Unit = {},
-    onNavigateToProfile: () -> Unit = {}
+    onNavigateToProfile: () -> Unit = {},
+    friendsViewModel: FriendsViewModel = viewModel()
 ) {
-    var amigos by remember { mutableStateOf<List<User>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
     var visualizandoAmigos by remember { mutableStateOf(true) }
-    val db = FirebaseFirestore.getInstance()
+    var friendToRemove by remember { mutableStateOf<User?>(null) }
+    val auth = FirebaseAuth.getInstance()
 
     LaunchedEffect(Unit) {
-        db.collection("users")
-            .get()
-            .addOnSuccessListener { result ->
-                amigos = result.documents.mapNotNull { it.toObject(User::class.java) }
-                isLoading = false
-            }
-            .addOnFailureListener {
-                isLoading = false
-            }
+        friendsViewModel.loadFriends()
     }
 
     Scaffold(
@@ -101,26 +99,70 @@ fun FriendsScreen(
             }
 
             // ---------- CONTEÚDO ----------
-            if (isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = ReadiumPrimary)
+            when {
+                friendsViewModel.isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = ReadiumPrimary)
+                    }
                 }
-            } else {
-                if (visualizandoAmigos) {
-                    FriendsList(friends = amigos)
-                } else {
-                    FriendsSolicitationScreen() // você já tinha isso
+
+                visualizandoAmigos -> {
+                    FriendsList(
+                        friends = friendsViewModel.friends,
+                        onRemoveFriend = { friend ->
+                            friendToRemove = friend // 👈 só abre o diálogo
+                        })
+                }
+
+                else -> {
+                    FriendsSolicitationScreen(
+                        friendsViewModel = friendsViewModel
+                    )
                 }
             }
         }
     }
+    friendToRemove?.let { friend ->
+
+        AlertDialog(
+            onDismissRequest = { friendToRemove = null },
+
+            title = {
+                Text("Remover amigo")
+            },
+
+            text = {
+                Text("Tem certeza que deseja remover ${friend.name}?")
+            },
+
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        friendsViewModel.removeFriend(friend)
+                        friendToRemove = null
+                    }
+                ) {
+                    Text("Remover", color = ReadiumError)
+                }
+            },
+
+            dismissButton = {
+                TextButton(
+                    onClick = { friendToRemove = null }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
 }
 
 @Composable
-fun FriendsList(friends: List<User>) {
+fun FriendsList(friends: List<User>, onRemoveFriend: (User) -> Unit) {
     if (friends.isEmpty()) {
         Text(
             "Você ainda não adicionou nenhum amigo.",
@@ -133,35 +175,30 @@ fun FriendsList(friends: List<User>) {
             modifier = Modifier.fillMaxSize()
         ) {
             items(friends) { friend ->
-                FriendCard(user = friend)
+                FriendCard(user = friend, onRemoveFriend = { onRemoveFriend(friend)})
             }
         }
     }
 }
 
 @Composable
-fun FriendCard(user: User) {
+fun FriendCard(
+    user: User,
+    onRemoveFriend: () -> Unit
+) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 4.dp),
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = ReadiumWhite),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // avatar placeholder
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(ReadiumGrayMedium)
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
 
             Column {
                 Text(
@@ -171,13 +208,23 @@ fun FriendCard(user: User) {
                     fontWeight = FontWeight.Bold
                 )
 
-                user.biography.let {
+                user.biography?.let {
                     Text(
                         it,
                         style = MaterialTheme.typography.bodySmall,
                         color = ReadiumBlack.copy(alpha = 0.6f)
                     )
                 }
+            }
+
+            OutlinedButton(
+                onClick = onRemoveFriend,
+                border = BorderStroke(1.dp, ReadiumGrayMedium),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = ReadiumGrayMedium
+                )
+            ) {
+                Text("Remover")
             }
         }
     }

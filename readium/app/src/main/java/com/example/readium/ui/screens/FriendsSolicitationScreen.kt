@@ -14,15 +14,18 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.readium.ui.theme.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.readium.viewmodel.FriendsViewModel
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.SetOptions
 
 @Composable
-fun FriendsSolicitationScreen() {
+fun FriendsSolicitationScreen(
+    friendsViewModel: FriendsViewModel = viewModel()
+) {
     var confirmationMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
@@ -34,13 +37,26 @@ fun FriendsSolicitationScreen() {
     val users = remember { mutableStateListOf<User>() }
 
     LaunchedEffect(Unit) {
-        db.collection("users")
+        isLoading = true
+        db.collection("friends")
+            .document(currentUserId)
             .get()
-            .addOnSuccessListener { result ->
-                val list = result.documents.mapNotNull { it.toObject(User::class.java) }
-                    .filter { it.id != currentUserId }
-                users.addAll(list)
-                isLoading = false
+            .addOnSuccessListener { doc ->
+                val friendIds = doc.get("ids_friends") as? List<String> ?: emptyList()
+                db.collection("users")
+                    .get()
+                    .addOnSuccessListener { result ->
+
+                        val list = result.documents
+                            .mapNotNull { it.toObject(User::class.java) }
+                            .filter {
+                                it.id != currentUserId &&
+                                        !friendIds.contains(it.id)
+                            }
+                        users.clear()
+                        users.addAll(list)
+                        isLoading = false
+                    }
             }
             .addOnFailureListener {
                 isLoading = false
@@ -69,12 +85,10 @@ fun FriendsSolicitationScreen() {
                         UserCard(
                             user = user,
                             onAddFriend = {
-                                addFriend(user, friends, db, currentUserId) {
-                                    confirmationMessage = it
+                                addFriend(user, db, currentUserId) { message ->
+                                    confirmationMessage = message
+                                    friendsViewModel.loadFriends()
                                 }
-                            },
-                            onRejectFriend = {
-                                confirmationMessage = "Você rejeitou ${user.name}."
                             }
                         )
                     }
@@ -91,33 +105,39 @@ fun FriendsSolicitationScreen() {
     }
 }
 
-fun addFriend(user: User, friends: MutableList<User>, db: FirebaseFirestore, currentUserId: String, onResult: (String) -> Unit) {
-    val friendRef = db.collection("users").document(currentUserId).collection("amigos").document(user.id ?: "")
+fun addFriend(
+    user: User,
+    db: FirebaseFirestore,
+    currentUserId: String,
+    onResult: (String) -> Unit
+) {
+    val friendId = user.id ?: return
 
-    friendRef.set(
-        mapOf(
-            "id" to (user.id ?: ""),
-            "nome" to (user.name ?: "Usuário Desconhecido"),
-            "email" to (user.email ?: "")
+    val currentUserRef = db.collection("friends").document(currentUserId)
+    val friendRef = db.collection("friends").document(friendId)
+
+    db.runBatch { batch ->
+        batch.set(
+            currentUserRef,
+            mapOf("ids_friends" to FieldValue.arrayUnion(friendId)),
+            SetOptions.merge()
         )
-    )
-        .addOnSuccessListener {
-            Log.d("FriendsSolicitation", "Amigo adicionado: ${user.name}")
-            friends.add(user)
-            onResult("${user.name} foi adicionado como amigo!")
-        }
-        .addOnFailureListener { e ->
-            Log.e("FriendsSolicitation", "Erro ao adicionar amigo", e)
-            onResult("Erro ao adicionar ${user.name}. Tente novamente.")
-        }
+        batch.set(
+            friendRef,
+            mapOf("ids_friends" to FieldValue.arrayUnion(currentUserId)),
+            SetOptions.merge()
+        )
+    }.addOnSuccessListener {
+        onResult("${user.name} foi adicionado como amigo!")
+    }.addOnFailureListener {
+        onResult("Erro ao adicionar amigo")
+    }
 }
-
 
 @Composable
 fun UserCard(
     user: User,
-    onAddFriend: () -> Unit,
-    onRejectFriend: () -> Unit
+    onAddFriend: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -157,17 +177,6 @@ fun UserCard(
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))
-
-                OutlinedButton(
-                    onClick = onRejectFriend,
-                    border = BorderStroke(1.dp, ReadiumGrayMedium),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = ReadiumGrayMedium
-                    )
-                ) {
-                    Text("Rejeitar")
-                }
-
             }
         }
     }
