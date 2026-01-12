@@ -35,21 +35,14 @@ fun ProfileScreen(
     friendsCount: Int = 89,
     onNavigateBack: () -> Unit = {},
     onNavigateToHome: () -> Unit = {},
-feature/editar-perfil
-    onNavigateToEditProfile: () -> Unit = {}
-
     onNavigateToFriends: () -> Unit = {},
     onNavigateToCreateThematicList: () -> Unit
- main
 ) {
     var selectedTab by remember { mutableStateOf(0) }
 
     Scaffold(
         topBar = {
-            ProfileTopBar(
-                onNavigateBack = onNavigateBack,
-                onNavigateToSettings = onNavigateToEditProfile
-            )
+            ProfileTopBar(onNavigateBack = onNavigateBack)
         },
         bottomBar = {
             ReadiumBottomBar(
@@ -148,7 +141,7 @@ feature/editar-perfil
             //conteúdo das abas
             when (selectedTab) {
                 0 -> {
-                    //aba de postagens
+                    // Tab de postagens
                     items(3) { index ->
                         PostCard(
                             userName = userName,
@@ -211,10 +204,7 @@ feature/editar-perfil
 }
 
 @Composable
-private fun ProfileTopBar(
-    onNavigateBack: () -> Unit,
-    onNavigateToSettings: () -> Unit = {}
-) {
+private fun ProfileTopBar(onNavigateBack: () -> Unit) {
     Box(modifier = Modifier.fillMaxWidth().padding(top = 34.dp, bottom = 0.dp)) {
         Surface(
             modifier = Modifier
@@ -246,7 +236,7 @@ private fun ProfileTopBar(
                     modifier = Modifier.weight(1f)
                 )
 
-                IconButton(onClick = onNavigateToSettings) {
+                IconButton(onClick = { /*ainda não implementado*/ }) {
                     Icon(
                         imageVector = Icons.Default.Settings,
                         contentDescription = "Configurações",

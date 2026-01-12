@@ -16,11 +16,7 @@ import com.example.readium.ui.screens.RegisterStepOneScreen
 import com.example.readium.ui.screens.RegisterStepTwoScreen
 import com.example.readium.ui.screens.ReadiumHomeScreen
 import com.example.readium.ui.screens.ProfileScreen
- feature/editar-perfil
-import com.example.readium.ui.screens.EditProfileScreen
-
 import com.example.readium.ui.screens.FriendsScreen
- main
 import com.example.readium.viewmodel.AuthViewModel
 import com.example.readium.viewmodel.AuthState
 
@@ -35,9 +31,6 @@ sealed class Screen(val route: String) {
     }
     object Home : Screen("home")
     object Profile : Screen("profile")
-feature/editar-perfil
-    object EditProfile : Screen("edit_profile")
-
     object Friends : Screen("friends")
     object CreateThematicList : Screen("newThematicList")
     object AddBooksOnList : Screen("addBooksOnList/{nome}/{descricao}") {
@@ -45,7 +38,6 @@ feature/editar-perfil
             return "addBooksOnList/$nome/$descricao"
         }
     }
- main
 }
 
 @Composable
@@ -157,16 +149,6 @@ fun ReadiumNavigation(
                         popUpTo(Screen.Profile.route) { inclusive = true }
                     }
                 },
- feature/editar-perfil
-                onNavigateToEditProfile = {
-                    navController.navigate(Screen.EditProfile.route)
-                }
-            )
-        }
-
-        composable(Screen.EditProfile.route) {
-            EditProfileScreen(
-
                 onNavigateToFriends = {
                     navController.navigate(Screen.Friends.route)
                 },
@@ -221,21 +203,17 @@ fun ReadiumNavigation(
             AddBooksOnListScreen(
                 nomeListaEncoded = name,
                 descricaoListaEncoded = description,
- main
                 onNavigateBack = {
                     navController.popBackStack()
                 },
                 onNavigateToHome = {
                     navController.navigate(Screen.Home.route) {
-feature/editar-perfil
-
                         popUpTo(Screen.Home.route) { inclusive = true }
                     }
                 },
                 onNavigateToProfile = {
                     navController.navigate(Screen.Profile.route) {
                         popUpTo(Screen.Profile.route) { inclusive = true }
- main
                     }
                 }
             )
