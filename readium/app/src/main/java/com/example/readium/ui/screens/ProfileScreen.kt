@@ -35,16 +35,11 @@ fun ProfileScreen(
     friendsCount: Int = 89,
     onNavigateBack: () -> Unit = {},
     onNavigateToHome: () -> Unit = {},
- feature/entrar-clube
-    onNavigateToFriends: () -> Unit = {},
-    onNavigateToEditProfile: () -> Unit = {}
-
 feature/editar-perfil
     onNavigateToEditProfile: () -> Unit = {}
 
     onNavigateToFriends: () -> Unit = {},
     onNavigateToCreateThematicList: () -> Unit
- main
  main
 ) {
     var selectedTab by remember { mutableStateOf(0) }
