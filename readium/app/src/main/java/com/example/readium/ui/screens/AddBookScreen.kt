@@ -16,11 +16,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.readium.data.model.Book
 import com.example.readium.data.model.BookStatus
-import com.example.readium.viewmodel.AddBookViewModel
 import com.example.readium.ui.theme.ReadiumTheme
 import java.util.Date
 

@@ -116,16 +116,12 @@ fun ReadiumNavigation(
         }
 
         composable(Screen.RegisterStepTwo.route) { backStackEntry ->
-            val name = backStackEntry.arguments?.getString("name") ?: ""
             val email = backStackEntry.arguments?.getString("email") ?: ""
             val password = backStackEntry.arguments?.getString("password") ?: ""
-            val confirmPassword = backStackEntry.arguments?.getString("confirmPassword") ?: ""
 
             RegisterStepTwoScreen(
-                name = name,
                 email = email,
                 password = password,
-                confirmPassword = confirmPassword,
                 onNavigateBack = {
                     navController.popBackStack()
                 },
@@ -171,13 +167,13 @@ fun ReadiumNavigation(
                         popUpTo(Screen.Profile.route) { inclusive = true }
                     }
                 },
-                onNavigateToEditProfile = {
-                    navController.navigate(Screen.EditProfile.route)
-                },
                 onNavigateToFriends = {
                     navController.navigate(Screen.Friends.route)
                 },
                 friendsViewModel = friendsViewModel,
+                onNavigateToEditProfile = {
+                    navController.navigate(Screen.EditProfile.route)
+                },
                 onNavigateToCreateThematicList = {
                     navController.navigate((Screen.CreateThematicList.route))
                 })

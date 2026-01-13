@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -16,7 +15,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -27,6 +25,8 @@ import com.example.readium.R
 import com.example.readium.ui.theme.*
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.readium.viewmodel.AuthViewModel
 import com.example.readium.viewmodel.ProfileUpdateState
@@ -92,7 +92,6 @@ fun EditProfileScreen(
         },
         bottomBar = {
             ReadiumBottomBar(
-                selectedItem = 2,
                 onHomeClick = onNavigateToHome,
                 onCreateClick = { },
                 onProfileClick = { }
@@ -205,7 +204,7 @@ fun EditProfileScreen(
                     icon = Icons.Default.Email,
                     label = "Alterar email",
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = { },
                     placeholder = "Email"
                 )
             }
@@ -311,7 +310,6 @@ fun EditProfileScreen(
             item {
                 Button(
                     onClick = {
-                        isSaving = true
                         authViewModel.updateUserProfile(
                             name = name,
                             biography = bio,
@@ -370,7 +368,7 @@ private fun EditProfileTopBar(onNavigateBack: () -> Unit) {
             ) {
                 IconButton(onClick = onNavigateBack) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Voltar",
                         tint = ReadiumWhite
                     )
@@ -443,7 +441,6 @@ private fun EditFieldSection(
 
 @Composable
 private fun ReadiumBottomBar(
-    selectedItem: Int,
     onHomeClick: () -> Unit,
     onCreateClick: () -> Unit,
     onProfileClick: () -> Unit
@@ -460,21 +457,18 @@ private fun ReadiumBottomBar(
         BottomBarItem(
             icon = Icons.Outlined.Home,
             label = "home",
-            isSelected = selectedItem == 0,
             onClick = onHomeClick
         )
 
         BottomBarItem(
             icon = Icons.Outlined.AddBox,
             label = "criar",
-            isSelected = selectedItem == 1,
             onClick = onCreateClick
         )
 
         BottomBarItem(
             icon = Icons.Outlined.Person,
             label = "perfil",
-            isSelected = selectedItem == 2,
             onClick = onProfileClick
         )
     }
@@ -484,7 +478,6 @@ private fun ReadiumBottomBar(
 private fun BottomBarItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
-    isSelected: Boolean,
     onClick: () -> Unit
 ) {
     Column(
@@ -496,14 +489,14 @@ private fun BottomBarItem(
         Icon(
             imageVector = icon,
             contentDescription = label,
-            tint = if (isSelected) ReadiumPrimary else ReadiumGrayMedium,
+            tint = ReadiumGrayMedium,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = label,
             fontSize = 11.sp,
-            color = if (isSelected) ReadiumPrimary else ReadiumGrayMedium
+            color = ReadiumGrayMedium
         )
     }
 }

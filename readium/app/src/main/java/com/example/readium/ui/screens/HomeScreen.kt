@@ -1,35 +1,28 @@
 package com.example.readium.ui.screens
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.readium.firebase.FirebaseConfig
 import com.example.readium.ui.theme.*
 import com.example.readium.viewmodel.AuthViewModel
 import androidx.compose.ui.res.painterResource
@@ -43,6 +36,7 @@ import coil.compose.AsyncImage
 fun ReadiumHomeScreen(
     onLogout: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
+    onNavigateToBookClubs: () -> Unit = {},
     authViewModel: AuthViewModel = viewModel()
 ) {
     val userProfile by authViewModel.userProfile.collectAsState()
@@ -115,9 +109,9 @@ fun ReadiumHomeScreen(
                             shape = RoundedCornerShape(8.dp),
                             color = ReadiumPrimary
                         ) {
-                            IconButton(onClick = { /*ainda não implementado*/ }) {
+                            IconButton(onClick = { onNavigateToBookClubs() }) {
                                 Icon(
-                                    imageVector = Icons.Default.MenuBook,
+                                    imageVector = Icons.AutoMirrored.Filled.MenuBook,
                                     contentDescription = "livro",
                                     tint = ReadiumOnPrimary
                                 )
@@ -132,7 +126,7 @@ fun ReadiumHomeScreen(
                             modifier = Modifier.size(36.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.ExitToApp,
+                                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                                 contentDescription = "sair",
                                 tint = ReadiumOnPrimary
                             )
@@ -143,7 +137,6 @@ fun ReadiumHomeScreen(
         },
         bottomBar = {
             ReadiumBottomBar(
-                selectedItem = 0,
                 onHomeClick = { },
                 onCreateClick = { /*ainda não implementado*/ },
                 onProfileClick = onNavigateToProfile
@@ -202,7 +195,6 @@ fun ReadiumHomeScreen(
 
 @Composable
 private fun ReadiumBottomBar(
-    selectedItem: Int,
     onHomeClick: () -> Unit,
     onCreateClick: () -> Unit,
     onProfileClick: () -> Unit
@@ -219,21 +211,21 @@ private fun ReadiumBottomBar(
         BottomBarItem(
             icon = Icons.Outlined.Home,
             label = "home",
-            isSelected = selectedItem == 0,
+            isSelected = true,
             onClick = onHomeClick
         )
 
         BottomBarItem(
             icon = Icons.Outlined.AddBox,
             label = "criar",
-            isSelected = selectedItem == 1,
+            isSelected = false,
             onClick = onCreateClick
         )
 
         BottomBarItem(
             icon = Icons.Outlined.Person,
             label = "perfil",
-            isSelected = selectedItem == 2,
+            isSelected = false,
             onClick = onProfileClick
         )
     }
@@ -255,7 +247,7 @@ private fun BottomBarItem(
         Icon(
             imageVector = icon,
             contentDescription = label,
-            tint = if (isSelected) ReadiumPrimary else ReadiumGrayMedium,
+            tint = if (isSelected) ReadiumPrimary else ReadiumGrayMedium ,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.height(4.dp))

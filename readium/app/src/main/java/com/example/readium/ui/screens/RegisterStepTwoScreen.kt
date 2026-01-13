@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.*
 import com.example.readium.ui.theme.*
@@ -25,15 +23,15 @@ import com.example.readium.viewmodel.AuthViewModel
 import com.example.readium.viewmodel.AuthState
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterStepTwoScreen(
-    name: String,
     email: String,
     password: String,
-    confirmPassword: String,
     onNavigateBack: () -> Unit,
     onRegistrationComplete: () -> Unit,
     authViewModel: AuthViewModel = viewModel()
@@ -81,7 +79,7 @@ fun RegisterStepTwoScreen(
                 navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
-                                imageVector = Icons.Default.ArrowBack,
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Voltar",
                                 tint = ReadiumOnBackground
                             )
@@ -311,7 +309,7 @@ fun RegisterStepTwoScreen(
                     fontSize = 14.sp,
                     color = ReadiumPrimary,
                     fontWeight = FontWeight.Medium,
-                    modifier = Modifier.clickable { onNavigateBack /*ainda falta implementar para que ele volte diretamente para login*/ }
+                    modifier = Modifier.clickable { onNavigateBack() /*ainda falta implementar para que ele volte diretamente para login*/ }
                 )
             }
         }

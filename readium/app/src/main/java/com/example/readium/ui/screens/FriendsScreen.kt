@@ -1,6 +1,5 @@
 package com.example.readium.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -8,16 +7,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,9 +23,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.readium.ui.theme.*
 import com.example.readium.data.User
 import com.example.readium.viewmodel.FriendsViewModel
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FieldPath
-import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun FriendsScreen(
@@ -38,7 +33,6 @@ fun FriendsScreen(
 ) {
     var visualizandoAmigos by remember { mutableStateOf(true) }
     var friendToRemove by remember { mutableStateOf<User?>(null) }
-    val auth = FirebaseAuth.getInstance()
 
     LaunchedEffect(Unit) {
         friendsViewModel.loadFriends()
@@ -50,7 +44,6 @@ fun FriendsScreen(
         },
         bottomBar = {
             ReadiumBottomBar(
-                selectedItem = 2,
                 onHomeClick = onNavigateToHome,
                 onCreateClick = {},
                 onProfileClick = onNavigateToProfile
@@ -127,7 +120,7 @@ fun FriendsScreen(
     friendToRemove?.let { friend ->
 
         AlertDialog(
-            onDismissRequest = { friendToRemove = null },
+            onDismissRequest = { },
 
             title = {
                 Text("Remover amigo")
@@ -141,7 +134,6 @@ fun FriendsScreen(
                 TextButton(
                     onClick = {
                         friendsViewModel.removeFriend(friend)
-                        friendToRemove = null
                     }
                 ) {
                     Text("Remover", color = ReadiumError)
@@ -150,7 +142,7 @@ fun FriendsScreen(
 
             dismissButton = {
                 TextButton(
-                    onClick = { friendToRemove = null }
+                    onClick = { }
                 ) {
                     Text("Cancelar")
                 }
@@ -207,13 +199,11 @@ fun FriendCard(
                     fontWeight = FontWeight.Bold
                 )
 
-                user.biography?.let {
-                    Text(
-                        it,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = ReadiumBlack.copy(alpha = 0.6f)
-                    )
-                }
+                Text(
+                    user.biography,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = ReadiumBlack.copy(alpha = 0.6f)
+                )
             }
 
             OutlinedButton(
@@ -231,10 +221,9 @@ fun FriendCard(
 
 @Composable
 private fun ReadiumBottomBar(
-    selectedItem: Int,
     onHomeClick: () -> Unit,
     onCreateClick: () -> Unit,
-    onProfileClick: () -> Unit
+    onProfileClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -248,21 +237,18 @@ private fun ReadiumBottomBar(
         BottomBarItem(
             icon = Icons.Outlined.Home,
             label = "home",
-            isSelected = selectedItem == 0,
             onClick = onHomeClick
         )
 
         BottomBarItem(
             icon = Icons.Outlined.AddBox,
             label = "criar",
-            isSelected = selectedItem == 1,
             onClick = onCreateClick
         )
 
         BottomBarItem(
             icon = Icons.Outlined.Person,
             label = "perfil",
-            isSelected = selectedItem == 2,
             onClick = onProfileClick
         )
     }
@@ -272,7 +258,6 @@ private fun ReadiumBottomBar(
 private fun BottomBarItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
-    isSelected: Boolean,
     onClick: () -> Unit
 ) {
     Column(
@@ -284,14 +269,14 @@ private fun BottomBarItem(
         Icon(
             imageVector = icon,
             contentDescription = label,
-            tint = if (isSelected) ReadiumPrimary else ReadiumGrayMedium,
+            tint = ReadiumGrayMedium,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = label,
             fontSize = 11.sp,
-            color = if (isSelected) ReadiumPrimary else ReadiumGrayMedium
+            color = ReadiumGrayMedium
         )
     }
 }
@@ -315,34 +300,19 @@ private fun ProfileTopBar(onNavigateBack: () -> Unit) {
             ) {
                 IconButton(onClick = onNavigateBack) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Voltar",
                         tint = ReadiumWhite
                     )
                 }
 
                 Text(
-                    text = "@name",
+                    text = "Amigos",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = ReadiumWhite,
                     modifier = Modifier.weight(1f)
                 )
-
-                IconButton(onClick = { /*ainda não implementado*/ }) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "Configurações",
-                        tint = ReadiumWhite
-                    )
-                }
-                IconButton(onClick = { /*ainda não implementado*/ }) {
-                    Icon(
-                        imageVector = Icons.Default.Share,
-                        contentDescription = "Compartilhar",
-                        tint = ReadiumWhite
-                    )
-                }
             }
         }
     }

@@ -1,16 +1,15 @@
 package com.example.readium.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -18,9 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,8 +31,6 @@ fun ProfileScreen(
     userName: String = "name",
     userBio: String = "book lover <3",
     userPhotoUrl: String? = null,
-    postsCount: Int = 13,
-    booksCount: Int = 19,
     onNavigateBack: () -> Unit = {},
     onNavigateToHome: () -> Unit = {},
     onNavigateToFriends: () -> Unit = {},
@@ -43,8 +38,10 @@ fun ProfileScreen(
     onNavigateToEditProfile: () -> Unit = {},
     onNavigateToCreateThematicList: () -> Unit = {}
 ) {
-    var selectedTab by remember { mutableStateOf(0) }
-    var friendsCount = friendsViewModel.friendsCount
+    var selectedTab by remember { mutableIntStateOf(0) }
+    val friendsCount = friendsViewModel.friendsCount
+    val postsCount = 13
+    val booksCount = 19
 
     Scaffold(
         topBar = {
@@ -56,7 +53,6 @@ fun ProfileScreen(
         },
         bottomBar = {
             ReadiumBottomBar(
-                selectedItem = 2, //perfil selecionado
                 onHomeClick = onNavigateToHome,
                 onCreateClick = { /*ainda não implementado*/ },
                 onProfileClick = { }
@@ -164,17 +160,20 @@ fun ProfileScreen(
                 0 -> {
                     // Tab de postagens
                     items(3) { index ->
+                        val likesNumber = index + 10
+                        val commentsNumber = index + 3
+                        val time = index + 2
                         PostCard(
                             userName = userName,
                             userPhotoUrl = userPhotoUrl,
-                            timeAgo = "há 14 minutos",
-                            postText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras eget lorem nec ante iaculis interdum eget in purus.",
+                            timeAgo = "há $time minutos",
+                            postText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras eget lorem nec ante iaculis interdum eget in purus.$index",
                             bookTitle = if (index == 2) "O admirável histórico de leitura" else null,
                             authorName = if (index == 2) "kathy" else null,
                             bookAuthor = if (index == 2) "Muará Awad" else null,
                             bookDescription = if (index == 2) "Wohov é uma história de solidão e potência, amizade e desejo, maternidade e feminino cujas tercerias falam do imaginário." else null,
-                            likes = 10,
-                            comments = 2
+                            likes = likesNumber,
+                            comments = commentsNumber
                         )
                     }
                 }
@@ -214,8 +213,8 @@ fun ProfileScreen(
                             //otra seção
                             BookListSection(
                                 title = "Para ler no verão <3",
-                                itemCount = 10,
-                                bookCount = 5
+                                itemCount = 9,
+                                bookCount = 8
                             )
                         }
                     }
@@ -231,7 +230,9 @@ private fun ProfileTopBar(
     onNavigateBack: () -> Unit,
     onNavigateToSettings: () -> Unit = {}
 ) {
-    Box(modifier = Modifier.fillMaxWidth().padding(top = 34.dp, bottom = 0.dp)) {
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .padding(top = 34.dp, bottom = 0.dp)) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -248,7 +249,7 @@ private fun ProfileTopBar(
             ) {
                 IconButton(onClick = onNavigateBack) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Voltar",
                         tint = ReadiumWhite
                     )
@@ -262,7 +263,7 @@ private fun ProfileTopBar(
                     modifier = Modifier.weight(1f)
                 )
 
-                IconButton(onClick = { /*ainda não implementado*/ }) {
+                IconButton(onClick = { onNavigateToSettings() }) {
                     Icon(
                         imageVector = Icons.Default.Settings,
                         contentDescription = "Configurações",
@@ -311,8 +312,8 @@ private fun PostCard(
     authorName: String? = null,
     bookAuthor: String? = null,
     bookDescription: String? = null,
-    likes: Int,
-    comments: Int
+    likes: Int = 0,
+    comments: Int = 0
 ) {
     Card(
         modifier = Modifier
@@ -542,7 +543,6 @@ private fun BookListSection(
 
 @Composable
 private fun ReadiumBottomBar(
-    selectedItem: Int,
     onHomeClick: () -> Unit,
     onCreateClick: () -> Unit,
     onProfileClick: () -> Unit
@@ -559,21 +559,21 @@ private fun ReadiumBottomBar(
         BottomBarItem(
             icon = Icons.Outlined.Home,
             label = "home",
-            isSelected = selectedItem == 0,
+            isSelected = false,
             onClick = onHomeClick
         )
 
         BottomBarItem(
             icon = Icons.Outlined.AddBox,
             label = "criar",
-            isSelected = selectedItem == 1,
+            isSelected = false,
             onClick = onCreateClick
         )
 
         BottomBarItem(
             icon = Icons.Outlined.Person,
             label = "perfil",
-            isSelected = selectedItem == 2,
+            isSelected = true,
             onClick = onProfileClick
         )
     }
