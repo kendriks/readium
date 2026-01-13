@@ -116,7 +116,6 @@ fun FriendsScreen(
                             friendToRemove = friend // 👈 só abre o diálogo
                         })
                 }
-
                 else -> {
                     FriendsSolicitationScreen(
                         friendsViewModel = friendsViewModel

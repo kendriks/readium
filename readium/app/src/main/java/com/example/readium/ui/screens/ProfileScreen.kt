@@ -37,6 +37,7 @@ fun ProfileScreen(
     onNavigateBack: () -> Unit = {},
     onNavigateToHome: () -> Unit = {},
     onNavigateToFriends: () -> Unit = {},
+    onNavigateToCreateThematicList: () -> Unit,
     friendsViewModel: FriendsViewModel = viewModel()
 ) {
     var selectedTab by remember { mutableStateOf(0) }
@@ -168,7 +169,7 @@ fun ProfileScreen(
                         ) {
                             //nova lista
                             OutlinedButton(
-                                onClick = { /*ainda não implementado*/ },
+                                onClick = onNavigateToCreateThematicList,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(48.dp),
