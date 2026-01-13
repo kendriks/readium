@@ -19,6 +19,7 @@ import com.example.readium.ui.screens.ProfileScreen
 import com.example.readium.ui.screens.FriendsScreen
 import com.example.readium.viewmodel.AuthViewModel
 import com.example.readium.viewmodel.AuthState
+import com.example.readium.viewmodel.FriendsViewModel
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -43,9 +44,11 @@ sealed class Screen(val route: String) {
 @Composable
 fun ReadiumNavigation(
     navController: NavHostController = rememberNavController(),
-    authViewModel: AuthViewModel = viewModel()
+    authViewModel: AuthViewModel = viewModel(),
+    friendsViewModel: FriendsViewModel = viewModel()
 ) {
     val authState by authViewModel.authState.collectAsState()
+    friendsViewModel.loadFriends()
     
     //determina rota inicial baseada no estado de autenticação
     val startDestination = when (authState) {
@@ -154,7 +157,8 @@ fun ReadiumNavigation(
                 },
                 onNavigateToCreateThematicList = {
                     navController.navigate((Screen.CreateThematicList.route))
-                }
+                },
+                friendsViewModel = friendsViewModel
             )
         }
 
@@ -170,7 +174,8 @@ fun ReadiumNavigation(
                 },
                 onNavigateToProfile = {
                     navController.navigate(Screen.Profile.route)
-                }
+                },
+                friendsViewModel = friendsViewModel
             )
         }
 

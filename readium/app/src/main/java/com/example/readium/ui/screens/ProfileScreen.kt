@@ -24,7 +24,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.readium.ui.theme.*
+import com.example.readium.viewmodel.FriendsViewModel
 
 @Composable
 fun ProfileScreen(
@@ -32,13 +34,14 @@ fun ProfileScreen(
     userBio: String = "book lover <3",
     postsCount: Int = 13,
     booksCount: Int = 19,
-    friendsCount: Int = 89,
     onNavigateBack: () -> Unit = {},
     onNavigateToHome: () -> Unit = {},
     onNavigateToFriends: () -> Unit = {},
-    onNavigateToCreateThematicList: () -> Unit
+    onNavigateToCreateThematicList: () -> Unit,
+    friendsViewModel: FriendsViewModel = viewModel()
 ) {
     var selectedTab by remember { mutableStateOf(0) }
+    var friendsCount = friendsViewModel.friendsCount
 
     Scaffold(
         topBar = {
