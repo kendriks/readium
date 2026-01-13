@@ -8,6 +8,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.readium.ui.screens.BookClubsScreen
+import com.example.readium.ui.screens.SearchBookClubsScreen
 import com.example.readium.ui.screens.AddBooksOnListScreen
 import com.example.readium.ui.screens.CreateThematicListScreen
 import com.example.readium.ui.screens.SplashScreen
@@ -16,6 +18,9 @@ import com.example.readium.ui.screens.RegisterStepOneScreen
 import com.example.readium.ui.screens.RegisterStepTwoScreen
 import com.example.readium.ui.screens.ReadiumHomeScreen
 import com.example.readium.ui.screens.ProfileScreen
+import com.example.readium.ui.screens.EditProfileScreen
+import com.example.readium.ui.screens.CreateBookClubScreen1
+import com.example.readium.ui.screens.CreateBookClubScreen2
 import com.example.readium.ui.screens.FriendsScreen
 import com.example.readium.viewmodel.AuthViewModel
 import com.example.readium.viewmodel.AuthState
@@ -32,7 +37,12 @@ sealed class Screen(val route: String) {
     }
     object Home : Screen("home")
     object Profile : Screen("profile")
+    object EditProfile : Screen("edit_profile")
+    object CreateBookClub1 : Screen("create_book_club_1")
+    object CreateBookClub2 : Screen("create_book_club_2")
     object Friends : Screen("friends")
+    object BookClubs: Screen("book_clubs")
+    object SearchBookClubs: Screen("search_book_clubs")
     object CreateThematicList : Screen("newThematicList")
     object AddBooksOnList : Screen("addBooksOnList/{nome}/{descricao}") {
         fun createRoute(nome: String, descricao: String): String {
@@ -49,7 +59,7 @@ fun ReadiumNavigation(
 ) {
     val authState by authViewModel.authState.collectAsState()
     friendsViewModel.loadFriends()
-    
+
     //determina rota inicial baseada no estado de autenticação
     val startDestination = when (authState) {
         is AuthState.Authenticated -> Screen.Home.route
@@ -106,16 +116,12 @@ fun ReadiumNavigation(
         }
 
         composable(Screen.RegisterStepTwo.route) { backStackEntry ->
-            val name = backStackEntry.arguments?.getString("name") ?: ""
             val email = backStackEntry.arguments?.getString("email") ?: ""
             val password = backStackEntry.arguments?.getString("password") ?: ""
-            val confirmPassword = backStackEntry.arguments?.getString("confirmPassword") ?: ""
 
             RegisterStepTwoScreen(
-                name = name,
                 email = email,
                 password = password,
-                confirmPassword = confirmPassword,
                 onNavigateBack = {
                     navController.popBackStack()
                 },
@@ -138,12 +144,21 @@ fun ReadiumNavigation(
                 },
                 onNavigateToProfile = {
                     navController.navigate(Screen.Profile.route)
-                }
+                },
+                onNavigateToBookClubs = {
+                    navController.navigate(Screen.BookClubs.route)
+                },
+                authViewModel = authViewModel
             )
         }
 
         composable(Screen.Profile.route) {
+            val userProfile by authViewModel.userProfile.collectAsState()
+
             ProfileScreen(
+                userName = userProfile?.name ?: "name",
+                userBio = userProfile?.biography ?: "book lover <3",
+                userPhotoUrl = userProfile?.profilePhotoUrl,
                 onNavigateBack = {
                     navController.popBackStack()
                 },
@@ -155,10 +170,26 @@ fun ReadiumNavigation(
                 onNavigateToFriends = {
                     navController.navigate(Screen.Friends.route)
                 },
+                friendsViewModel = friendsViewModel,
+                onNavigateToEditProfile = {
+                    navController.navigate(Screen.EditProfile.route)
+                },
                 onNavigateToCreateThematicList = {
                     navController.navigate((Screen.CreateThematicList.route))
+                })
+        }
+
+        composable(Screen.EditProfile.route) {
+            EditProfileScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
                 },
-                friendsViewModel = friendsViewModel
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.EditProfile.route) { inclusive = true }
+                    }
+                },
+                authViewModel = authViewModel
             )
         }
 
@@ -180,23 +211,77 @@ fun ReadiumNavigation(
         }
 
         composable(Screen.CreateThematicList.route) {
-            CreateThematicListScreen (
+            CreateThematicListScreen(
                 onNavigateBack = {
                     navController.popBackStack()
                 },
                 onNavigateToHome = {
                     navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
+                        popUpTo(Screen.CreateThematicList.route) { inclusive = true }
                     }
                 },
                 onNavigateToProfile = {
-                    navController.navigate(Screen.Profile.route) {
-                        popUpTo(Screen.Profile.route) { inclusive = true }
-                    }
+                    navController.navigate(Screen.Profile.route)
                 },
                 onNavigateToAddBookScreen = { nome, descricao ->
                     val route = Screen.AddBooksOnList.createRoute(nome, descricao)
                     navController.navigate(route)
+                }
+            )
+        }
+
+        composable(Screen.CreateBookClub1.route) {
+            CreateBookClubScreen1(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToNext = {
+                    navController.navigate(Screen.CreateBookClub2.route)
+                },
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.CreateBookClub1.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.CreateBookClub2.route) {
+            CreateBookClubScreen2(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onCreateClub = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.CreateBookClub2.route) { inclusive = true }
+                    }
+                },
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.CreateBookClub2.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.BookClubs.route) {
+            BookClubsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToCreateClub = {
+                    navController.navigate(Screen.CreateBookClub1.route)
+                },
+                onNavigateToSearchClubs = {
+                    navController.navigate(Screen.SearchBookClubs.route)
+                }
+            )
+        }
+
+        composable(Screen.SearchBookClubs.route) {
+            SearchBookClubsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }

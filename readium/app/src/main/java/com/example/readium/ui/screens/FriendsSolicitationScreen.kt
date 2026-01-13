@@ -1,7 +1,5 @@
 package com.example.readium.ui.screens
 
-import android.util.Log
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.readium.data.model.Friends
 import com.example.readium.viewmodel.FriendsViewModel
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.SetOptions
@@ -42,7 +41,9 @@ fun FriendsSolicitationScreen(
             .document(currentUserId)
             .get()
             .addOnSuccessListener { doc ->
-                val friendIds = doc.get("ids_friends") as? List<String> ?: emptyList()
+                val friends = doc.toObject(Friends::class.java)
+                val friendIds = friends?.idsFriends ?: emptyList()
+
                 db.collection("users")
                     .get()
                     .addOnSuccessListener { result ->
@@ -97,7 +98,7 @@ fun FriendsSolicitationScreen(
         }
 
         confirmationMessage?.let {
-            showConfirmationDialog(
+            ShowConfirmationDialog(
                 message = it,
                 onDismiss = { confirmationMessage = null }
             )
@@ -111,7 +112,7 @@ fun addFriend(
     currentUserId: String,
     onResult: (String) -> Unit
 ) {
-    val friendId = user.id ?: return
+    val friendId = user.id
 
     val currentUserRef = db.collection("friends").document(currentUserId)
     val friendRef = db.collection("friends").document(friendId)
@@ -159,13 +160,11 @@ fun UserCard(
                     fontWeight = FontWeight.Bold
                 )
 
-                user.biography?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = ReadiumBlack.copy(alpha = 0.6f)
-                    )
-                }
+                Text(
+                    text = user.biography,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = ReadiumBlack.copy(alpha = 0.6f)
+                )
             }
 
             Row {
@@ -184,7 +183,7 @@ fun UserCard(
 
 
 @Composable
-fun showConfirmationDialog(
+fun ShowConfirmationDialog(
     message: String,
     onDismiss: () -> Unit
 ) {

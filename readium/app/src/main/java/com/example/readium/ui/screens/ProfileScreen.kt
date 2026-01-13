@@ -1,16 +1,15 @@
 package com.example.readium.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -18,38 +17,42 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.readium.ui.theme.*
 import com.example.readium.viewmodel.FriendsViewModel
+import coil.compose.AsyncImage
 
 @Composable
 fun ProfileScreen(
     userName: String = "name",
     userBio: String = "book lover <3",
-    postsCount: Int = 13,
-    booksCount: Int = 19,
+    userPhotoUrl: String? = null,
     onNavigateBack: () -> Unit = {},
     onNavigateToHome: () -> Unit = {},
     onNavigateToFriends: () -> Unit = {},
-    onNavigateToCreateThematicList: () -> Unit,
-    friendsViewModel: FriendsViewModel = viewModel()
+    friendsViewModel: FriendsViewModel = viewModel(),
+    onNavigateToEditProfile: () -> Unit = {},
+    onNavigateToCreateThematicList: () -> Unit = {}
 ) {
-    var selectedTab by remember { mutableStateOf(0) }
-    var friendsCount = friendsViewModel.friendsCount
+    var selectedTab by remember { mutableIntStateOf(0) }
+    val friendsCount = friendsViewModel.friendsCount
+    val postsCount = 13
+    val booksCount = 19
 
     Scaffold(
         topBar = {
-            ProfileTopBar(onNavigateBack = onNavigateBack)
+            ProfileTopBar(
+                userName = userName,
+                onNavigateBack = onNavigateBack,
+                onNavigateToSettings = onNavigateToEditProfile
+            )
         },
         bottomBar = {
             ReadiumBottomBar(
-                selectedItem = 2, //perfil selecionado
                 onHomeClick = onNavigateToHome,
                 onCreateClick = { /*ainda não implementado*/ },
                 onProfileClick = { }
@@ -79,7 +82,18 @@ fun ProfileScreen(
                                 .size(72.dp)
                                 .clip(CircleShape)
                                 .background(ReadiumGrayMedium)
-                        )
+                        ) {
+                            if (!userPhotoUrl.isNullOrEmpty()) {
+                                AsyncImage(
+                                    model = userPhotoUrl,
+                                    contentDescription = "Foto de perfil",
+                                    modifier = Modifier
+                                        .size(72.dp)
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+                        }
 
                         Spacer(modifier = Modifier.width(24.dp))
 
@@ -146,16 +160,20 @@ fun ProfileScreen(
                 0 -> {
                     // Tab de postagens
                     items(3) { index ->
+                        val likesNumber = index + 10
+                        val commentsNumber = index + 3
+                        val time = index + 2
                         PostCard(
                             userName = userName,
-                            timeAgo = "há 14 minutos",
-                            postText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras eget lorem nec ante iaculis interdum eget in purus.",
+                            userPhotoUrl = userPhotoUrl,
+                            timeAgo = "há $time minutos",
+                            postText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras eget lorem nec ante iaculis interdum eget in purus.$index",
                             bookTitle = if (index == 2) "O admirável histórico de leitura" else null,
                             authorName = if (index == 2) "kathy" else null,
                             bookAuthor = if (index == 2) "Muará Awad" else null,
                             bookDescription = if (index == 2) "Wohov é uma história de solidão e potência, amizade e desejo, maternidade e feminino cujas tercerias falam do imaginário." else null,
-                            likes = 10,
-                            comments = 2
+                            likes = likesNumber,
+                            comments = commentsNumber
                         )
                     }
                 }
@@ -195,8 +213,8 @@ fun ProfileScreen(
                             //otra seção
                             BookListSection(
                                 title = "Para ler no verão <3",
-                                itemCount = 10,
-                                bookCount = 5
+                                itemCount = 9,
+                                bookCount = 8
                             )
                         }
                     }
@@ -207,8 +225,14 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun ProfileTopBar(onNavigateBack: () -> Unit) {
-    Box(modifier = Modifier.fillMaxWidth().padding(top = 34.dp, bottom = 0.dp)) {
+private fun ProfileTopBar(
+    userName: String = "name",
+    onNavigateBack: () -> Unit,
+    onNavigateToSettings: () -> Unit = {}
+) {
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .padding(top = 34.dp, bottom = 0.dp)) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -225,21 +249,21 @@ private fun ProfileTopBar(onNavigateBack: () -> Unit) {
             ) {
                 IconButton(onClick = onNavigateBack) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Voltar",
                         tint = ReadiumWhite
                     )
                 }
 
                 Text(
-                    text = "@name",
+                    text = "@${userName}",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = ReadiumWhite,
                     modifier = Modifier.weight(1f)
                 )
 
-                IconButton(onClick = { /*ainda não implementado*/ }) {
+                IconButton(onClick = { onNavigateToSettings() }) {
                     Icon(
                         imageVector = Icons.Default.Settings,
                         contentDescription = "Configurações",
@@ -281,14 +305,15 @@ private fun StatItem(count: Int, label: String, onClick: () -> Unit) {
 @Composable
 private fun PostCard(
     userName: String,
+    userPhotoUrl: String? = null,
     timeAgo: String,
     postText: String,
     bookTitle: String? = null,
     authorName: String? = null,
     bookAuthor: String? = null,
     bookDescription: String? = null,
-    likes: Int,
-    comments: Int
+    likes: Int = 0,
+    comments: Int = 0
 ) {
     Card(
         modifier = Modifier
@@ -310,7 +335,18 @@ private fun PostCard(
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(ReadiumGrayMedium)
-                )
+                ) {
+                    if (!userPhotoUrl.isNullOrEmpty()) {
+                        AsyncImage(
+                            model = userPhotoUrl,
+                            contentDescription = "Foto de perfil",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.width(12.dp))
 
@@ -507,7 +543,6 @@ private fun BookListSection(
 
 @Composable
 private fun ReadiumBottomBar(
-    selectedItem: Int,
     onHomeClick: () -> Unit,
     onCreateClick: () -> Unit,
     onProfileClick: () -> Unit
@@ -524,21 +559,21 @@ private fun ReadiumBottomBar(
         BottomBarItem(
             icon = Icons.Outlined.Home,
             label = "home",
-            isSelected = selectedItem == 0,
+            isSelected = false,
             onClick = onHomeClick
         )
 
         BottomBarItem(
             icon = Icons.Outlined.AddBox,
             label = "criar",
-            isSelected = selectedItem == 1,
+            isSelected = false,
             onClick = onCreateClick
         )
 
         BottomBarItem(
             icon = Icons.Outlined.Person,
             label = "perfil",
-            isSelected = selectedItem == 2,
+            isSelected = true,
             onClick = onProfileClick
         )
     }

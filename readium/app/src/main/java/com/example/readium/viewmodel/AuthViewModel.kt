@@ -1,6 +1,7 @@
 package com.example.readium.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.readium.repository.FirebaseRepository
 import com.example.readium.data.User
@@ -10,9 +11,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(application: Application) : AndroidViewModel(application) {
     
-    private val repository = FirebaseRepository()
+    private val repository = FirebaseRepository(application.applicationContext)
     
     private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
@@ -22,6 +23,9 @@ class AuthViewModel : ViewModel() {
     
     private val _userProfile = MutableStateFlow<User?>(null)
     val userProfile: StateFlow<User?> = _userProfile.asStateFlow()
+
+    private val _profileUpdateState = MutableStateFlow<ProfileUpdateState>(ProfileUpdateState.Idle)
+    val profileUpdateState: StateFlow<ProfileUpdateState> = _profileUpdateState.asStateFlow()
     
     init {
         checkAuthState()
@@ -30,10 +34,11 @@ class AuthViewModel : ViewModel() {
     private fun checkAuthState() {
         val currentUser = repository.getCurrentUser()
         _user.value = currentUser
-        _authState.value = if (currentUser != null) {
-            AuthState.Authenticated
+        if (currentUser != null) {
+            _authState.value = AuthState.Authenticated
+            loadUserProfile(currentUser.uid)
         } else {
-            AuthState.Unauthenticated
+            _authState.value = AuthState.Unauthenticated
         }
     }
     
@@ -45,6 +50,7 @@ class AuthViewModel : ViewModel() {
             result.fold(
                 onSuccess = { user ->
                     _user.value = user
+                    user?.let { loadUserProfile(it.uid) }
                     _authState.value = AuthState.Authenticated
                 },
                 onFailure = { exception ->
@@ -55,18 +61,40 @@ class AuthViewModel : ViewModel() {
     }
     
     fun signUp(name: String, email: String, password: String, biography: String = "", profilePhotoUri: String? = null) {
+        //validação de campos obrigatórios(foto é opcional)
+        
+        if (name.isBlank()) {
+            _authState.value = AuthState.Error("Nome de usuário é obrigatório")
+            return
+        }
+        
+        if (email.isBlank()) {
+            _authState.value = AuthState.Error("Email é obrigatório")
+            return
+        }
+        
+        if (password.isBlank()) {
+            _authState.value = AuthState.Error("Senha é obrigatória")
+            return
+        }
+        
         viewModelScope.launch {
             _authState.value = AuthState.Loading
+            println("DEBUG AuthViewModel.signUp: Iniciando cadastro com email=$email, name=$name, photoUri=$profilePhotoUri")
+            
             val result = repository.createUserWithEmail(email, password, name, biography, profilePhotoUri)
             
             result.fold(
                 onSuccess = { user ->
+                    println("DEBUG AuthViewModel.signUp: Cadastro bem-sucedido para $email")
                     _user.value = user
                     user?.let { loadUserProfile(it.uid) }
                     _authState.value = AuthState.Authenticated
                 },
                 onFailure = { exception ->
-                    _authState.value = AuthState.Error(exception.message ?: "Erro desconhecido")
+                    println("DEBUG AuthViewModel.signUp: Erro no cadastro: ${exception.message}")
+                    exception.printStackTrace()
+                    _authState.value = AuthState.Error(exception.message ?: "Erro ao criar conta")
                 }
             )
         }
@@ -102,6 +130,36 @@ class AuthViewModel : ViewModel() {
         }
     }
     
+    fun updateUserProfile(name: String, biography: String, profilePhotoUri: String? = null) {
+        viewModelScope.launch {
+            _user.value?.uid?.let { userId ->
+                _profileUpdateState.value = ProfileUpdateState.Loading
+                val result = repository.updateUserProfile(userId, name, biography, profilePhotoUri)
+                result.fold(
+                    onSuccess = {
+                        loadUserProfile(userId)
+                        _profileUpdateState.value = ProfileUpdateState.Success
+                    },
+                    onFailure = { exception ->
+                        _profileUpdateState.value = ProfileUpdateState.Error(exception.message ?: "Falha ao atualizar perfil")
+                    }
+                )
+            } ?: run {
+                _profileUpdateState.value = ProfileUpdateState.Error("Usuário não autenticado")
+            }
+        }
+    }
+
+    fun resetProfileUpdateState() {
+        _profileUpdateState.value = ProfileUpdateState.Idle
+    }
+    
+    fun clearAuthError() {
+        if (_authState.value is AuthState.Error) {
+            _authState.value = AuthState.Unauthenticated
+        }
+    }
+    
     fun signOut() {
         repository.signOut()
         _user.value = null
@@ -114,4 +172,11 @@ sealed class AuthState {
     object Authenticated : AuthState()
     object Unauthenticated : AuthState()
     data class Error(val message: String) : AuthState()
+}
+
+sealed class ProfileUpdateState {
+    object Idle : ProfileUpdateState()
+    object Loading : ProfileUpdateState()
+    object Success : ProfileUpdateState()
+    data class Error(val message: String) : ProfileUpdateState()
 }

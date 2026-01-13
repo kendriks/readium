@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.*
 import com.example.readium.ui.theme.*
@@ -25,15 +23,15 @@ import com.example.readium.viewmodel.AuthViewModel
 import com.example.readium.viewmodel.AuthState
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterStepTwoScreen(
-    name: String,
     email: String,
     password: String,
-    confirmPassword: String,
     onNavigateBack: () -> Unit,
     onRegistrationComplete: () -> Unit,
     authViewModel: AuthViewModel = viewModel()
@@ -41,20 +39,34 @@ fun RegisterStepTwoScreen(
     var username by remember { mutableStateOf("") }
     var biography by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<String?>(null) }
+    var hasShownError by remember { mutableStateOf(false) }
     
     //selecionar imagem da galeria
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         selectedImageUri = uri?.toString()
+        hasShownError = false 
+        authViewModel.clearAuthError()
+        println("DEBUG RegisterStepTwoScreen: Foto selecionada: $uri")
     }
     
     val authState by authViewModel.authState.collectAsState()
+
+    LaunchedEffect(selectedImageUri, authState) {
+        if (!selectedImageUri.isNullOrBlank() && authState is AuthState.Error) {
+            println("DEBUG RegisterStepTwoScreen: Limpando erro pois nova foto foi selecionada")
+            authViewModel.clearAuthError()
+        }
+    }
 
     LaunchedEffect(authState) {
         when (authState) {
             is AuthState.Authenticated -> {
                 onRegistrationComplete()
+            }
+            is AuthState.Error -> {
+                hasShownError = true
             }
             else -> {}
         }
@@ -67,7 +79,7 @@ fun RegisterStepTwoScreen(
                 navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
-                                imageVector = Icons.Default.ArrowBack,
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Voltar",
                                 tint = ReadiumOnBackground
                             )
@@ -189,7 +201,7 @@ fun RegisterStepTwoScreen(
 
             //mostra erros
             val currentAuthState = authState
-            if (currentAuthState is AuthState.Error) {
+            if (currentAuthState is AuthState.Error && hasShownError) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -198,12 +210,27 @@ fun RegisterStepTwoScreen(
                         containerColor = ReadiumError
                     )
                 ) {
-                    Text(
-                        text = currentAuthState.message,
-                        modifier = Modifier.padding(16.dp),
-                        color = ReadiumWhite,
-                        fontSize = 14.sp
-                    )
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(
+                            text = currentAuthState.message,
+                            color = ReadiumWhite,
+                            fontSize = 14.sp
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        TextButton(
+                            onClick = { 
+                                authViewModel.clearAuthError()
+                                hasShownError = false
+                            }
+                        ) {
+                            Text(
+                                text = "Tentar novamente",
+                                color = ReadiumWhite
+                            )
+                        }
+                    }
                 }
             }
 
@@ -212,20 +239,29 @@ fun RegisterStepTwoScreen(
 
             Button(
                 onClick = {
+                    if (username.isBlank()) {
+                        println("DEBUG RegisterStepTwoScreen: Nome está vazio")
+                        return@Button
+                    }
+                    
+                    println("DEBUG RegisterStepTwoScreen: Iniciando cadastro com nome=$username, foto=${selectedImageUri ?: "sem foto"}")
                     authViewModel.signUp(
-                        name = name,
+                        name = username,
                         email = email,
                         password = password,
                         biography = biography,
                         profilePhotoUri = selectedImageUri
                     )
                 },
-                enabled = authState !is AuthState.Loading,
+                enabled = authState !is AuthState.Loading && username.isNotBlank(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = ReadiumPrimary,
+                    containerColor = if (username.isBlank()) 
+                        ReadiumPrimary.copy(alpha = 0.5f) 
+                    else 
+                        ReadiumPrimary,
                     contentColor = ReadiumOnPrimary
                 ),
                 shape = RoundedCornerShape(8.dp)
@@ -243,6 +279,17 @@ fun RegisterStepTwoScreen(
                         fontWeight = FontWeight.Medium
                     )
                 }
+            }
+            
+            //aviso de que a foto é opcional
+            if (selectedImageUri.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "* Foto de perfil é opcional. Você pode adicionar depois.",
+                    fontSize = 12.sp,
+                    color = ReadiumOnSurface.copy(alpha = 0.7f),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
             }
 
             Row(
@@ -262,7 +309,7 @@ fun RegisterStepTwoScreen(
                     fontSize = 14.sp,
                     color = ReadiumPrimary,
                     fontWeight = FontWeight.Medium,
-                    modifier = Modifier.clickable { onNavigateBack /*ainda falta implementar para que ele volte diretamente para login*/ }
+                    modifier = Modifier.clickable { onNavigateBack() /*ainda falta implementar para que ele volte diretamente para login*/ }
                 )
             }
         }
