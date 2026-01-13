@@ -36,13 +36,14 @@ import androidx.compose.ui.res.painterResource
 import com.example.readium.R
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
+import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReadiumHomeScreen(
     onLogout: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
-    onNavigateToCreateClub: () -> Unit = {},
+    onNavigateToBookClubs: () -> Unit = {},
     authViewModel: AuthViewModel = viewModel()
 ) {
     val userProfile by authViewModel.userProfile.collectAsState()
@@ -76,16 +77,26 @@ fun ReadiumHomeScreen(
                                 .size(44.dp)
                                 .clip(CircleShape)
                                 .background(ReadiumWhite)
-                                .border(2.dp, ReadiumWhite, CircleShape)
                         ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_google),
-                                contentDescription = "avatar",
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(4.dp),
-                                contentScale = ContentScale.Crop
-                            )
+                            if (!userProfile?.profilePhotoUrl.isNullOrEmpty()) {
+                                AsyncImage(
+                                    model = userProfile?.profilePhotoUrl,
+                                    contentDescription = "avatar",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_google),
+                                    contentDescription = "avatar",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(4.dp),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
                         }
 
                         Spacer(modifier = Modifier.width(12.dp))
@@ -105,7 +116,7 @@ fun ReadiumHomeScreen(
                             shape = RoundedCornerShape(8.dp),
                             color = ReadiumPrimary
                         ) {
-                            IconButton(onClick = { onNavigateToCreateClub() }) {
+                            IconButton(onClick = { onNavigateToBookClubs() }) {
                                 Icon(
                                     imageVector = Icons.Default.MenuBook,
                                     contentDescription = "livro",

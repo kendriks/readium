@@ -25,23 +25,28 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.readium.ui.theme.*
+import coil.compose.AsyncImage
 
 @Composable
 fun ProfileScreen(
     userName: String = "name",
     userBio: String = "book lover <3",
+    userPhotoUrl: String? = null,
     postsCount: Int = 13,
     booksCount: Int = 19,
     friendsCount: Int = 89,
     onNavigateBack: () -> Unit = {},
     onNavigateToHome: () -> Unit = {},
-    onNavigateToEditProfile: () -> Unit = {}
+    onNavigateToFriends: () -> Unit = {},
+    onNavigateToEditProfile: () -> Unit = {},
+    onNavigateToCreateThematicList: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(0) }
 
     Scaffold(
         topBar = {
             ProfileTopBar(
+                userName = userName,
                 onNavigateBack = onNavigateBack,
                 onNavigateToSettings = onNavigateToEditProfile
             )
@@ -78,7 +83,18 @@ fun ProfileScreen(
                                 .size(72.dp)
                                 .clip(CircleShape)
                                 .background(ReadiumGrayMedium)
-                        )
+                        ) {
+                            if (!userPhotoUrl.isNullOrEmpty()) {
+                                AsyncImage(
+                                    model = userPhotoUrl,
+                                    contentDescription = "Foto de perfil",
+                                    modifier = Modifier
+                                        .size(72.dp)
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+                        }
 
                         Spacer(modifier = Modifier.width(24.dp))
 
@@ -87,9 +103,9 @@ fun ProfileScreen(
                             modifier = Modifier.weight(1f),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            StatItem(count = postsCount, label = "postagens")
-                            StatItem(count = booksCount, label = "livros")
-                            StatItem(count = friendsCount, label = "amigos")
+                            StatItem(count = postsCount, label = "postagens", onClick = {})
+                            StatItem(count = booksCount, label = "livros", onClick = {})
+                            StatItem(count = friendsCount, label = "amigos", onClick = onNavigateToFriends)
                         }
                     }
 
@@ -147,6 +163,7 @@ fun ProfileScreen(
                     items(3) { index ->
                         PostCard(
                             userName = userName,
+                            userPhotoUrl = userPhotoUrl,
                             timeAgo = "há 14 minutos",
                             postText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras eget lorem nec ante iaculis interdum eget in purus.",
                             bookTitle = if (index == 2) "O admirável histórico de leitura" else null,
@@ -168,7 +185,7 @@ fun ProfileScreen(
                         ) {
                             //nova lista
                             OutlinedButton(
-                                onClick = { /*ainda não implementado*/ },
+                                onClick = onNavigateToCreateThematicList,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(48.dp),
@@ -207,6 +224,7 @@ fun ProfileScreen(
 
 @Composable
 private fun ProfileTopBar(
+    userName: String = "name",
     onNavigateBack: () -> Unit,
     onNavigateToSettings: () -> Unit = {}
 ) {
@@ -234,7 +252,7 @@ private fun ProfileTopBar(
                 }
 
                 Text(
-                    text = "@name",
+                    text = "@${userName}",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = ReadiumWhite,
@@ -261,9 +279,10 @@ private fun ProfileTopBar(
 }
 
 @Composable
-private fun StatItem(count: Int, label: String) {
+private fun StatItem(count: Int, label: String, onClick: () -> Unit) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(onClick = onClick)
     ) {
         Text(
             text = count.toString(),
@@ -282,6 +301,7 @@ private fun StatItem(count: Int, label: String) {
 @Composable
 private fun PostCard(
     userName: String,
+    userPhotoUrl: String? = null,
     timeAgo: String,
     postText: String,
     bookTitle: String? = null,
@@ -311,7 +331,18 @@ private fun PostCard(
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(ReadiumGrayMedium)
-                )
+                ) {
+                    if (!userPhotoUrl.isNullOrEmpty()) {
+                        AsyncImage(
+                            model = userPhotoUrl,
+                            contentDescription = "Foto de perfil",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.width(12.dp))
 

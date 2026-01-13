@@ -25,19 +25,68 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.readium.R
 import com.example.readium.ui.theme.*
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.readium.viewmodel.AuthViewModel
+import com.example.readium.viewmodel.ProfileUpdateState
+import coil.compose.AsyncImage
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.runtime.remember
 
 @Composable
 fun EditProfileScreen(
     onNavigateBack: () -> Unit = {},
-    onNavigateToHome: () -> Unit = {}
+    onNavigateToHome: () -> Unit = {},
+    authViewModel: AuthViewModel = viewModel()
 ) {
+    val userProfile by authViewModel.userProfile.collectAsState()
+    val updateState by authViewModel.profileUpdateState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    
     var name by remember { mutableStateOf("") }
-    var username by remember { mutableStateOf("") }
-    var bio by remember { mutableStateOf("Book lover <3") }
     var email by remember { mutableStateOf("") }
+    var bio by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var selectedImageUri by remember { mutableStateOf<String?>(null) }
+    var isSaving by remember { mutableStateOf(false) }
+    
+    //carregar dados do usuário quando o perfil estiver disponível
+    LaunchedEffect(userProfile) {
+        userProfile?.let {
+            name = it.name
+            email = it.email
+            bio = it.biography
+        }
+    }
+    
+    //navegar de volta ao concluir atualização e resetar estado
+    LaunchedEffect(updateState) {
+        when (val state = updateState) {
+            is ProfileUpdateState.Success -> {
+                isSaving = false
+                authViewModel.resetProfileUpdateState()
+                onNavigateBack()
+            }
+            is ProfileUpdateState.Error -> {
+                isSaving = false
+                snackbarHostState.showSnackbar(state.message)
+                authViewModel.resetProfileUpdateState()
+            }
+            else -> {}
+        }
+    }
+    
+    //launcher para selecionar imagem
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        selectedImageUri = uri?.toString()
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             EditProfileTopBar(onNavigateBack = onNavigateBack)
         },
@@ -65,19 +114,35 @@ fun EditProfileScreen(
                         .padding(bottom = 8.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Box {
+                    Box(
+                        modifier = Modifier.clickable {
+                            imagePickerLauncher.launch("image/*")
+                        }
+                    ) {
                         Box(
                             modifier = Modifier
                                 .size(80.dp)
                                 .clip(CircleShape)
                                 .background(ReadiumGrayMedium)
                         ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_google),
-                                contentDescription = "avatar",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
+                            val photoUrl = selectedImageUri ?: userProfile?.profilePhotoUrl
+                            if (!photoUrl.isNullOrEmpty()) {
+                                AsyncImage(
+                                    model = photoUrl,
+                                    contentDescription = "avatar",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_google),
+                                    contentDescription = "avatar",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
                         }
 
                         //icone de edição
@@ -134,14 +199,14 @@ fun EditProfileScreen(
                 )
             }
 
-            //alterar nome de usuário
+            //alterar email
             item {
                 EditFieldSection(
-                    icon = Icons.Default.Edit,
-                    label = "Alterar nome de usuário",
-                    value = username,
-                    onValueChange = { username = it },
-                    placeholder = "Name"
+                    icon = Icons.Default.Email,
+                    label = "Alterar email",
+                    value = email,
+                    onValueChange = { email = it },
+                    placeholder = "Email"
                 )
             }
 
@@ -176,13 +241,13 @@ fun EditProfileScreen(
                         onValueChange = { bio = it },
                         placeholder = {
                             Text(
-                                text = "Book lover <3",
+                                text = "Conte um pouco sobre você",
                                 color = ReadiumGrayMedium
                             )
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(120.dp),
+                            .heightIn(min = 120.dp),
                         shape = RoundedCornerShape(8.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = ReadiumPrimary,
@@ -192,17 +257,6 @@ fun EditProfileScreen(
                         )
                     )
                 }
-            }
-
-            //alterar e-mail
-            item {
-                EditFieldSection(
-                    icon = Icons.Default.Email,
-                    label = "Alterar e-mail",
-                    value = email,
-                    onValueChange = { email = it },
-                    placeholder = "name@name.com"
-                )
             }
 
             //alterar senha
@@ -256,7 +310,15 @@ fun EditProfileScreen(
             //botão de salvar alterações
             item {
                 Button(
-                    onClick = { /*ainda falta implementar*/ },
+                    onClick = {
+                        isSaving = true
+                        authViewModel.updateUserProfile(
+                            name = name,
+                            biography = bio,
+                            profilePhotoUri = selectedImageUri
+                        )
+                    },
+                    enabled = !isSaving,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 16.dp)
@@ -267,11 +329,18 @@ fun EditProfileScreen(
                         contentColor = ReadiumWhite
                     )
                 ) {
-                    Text(
-                        text = "Salvar alterações",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    if (isSaving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = ReadiumWhite
+                        )
+                    } else {
+                        Text(
+                            text = "Salvar alterações",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
 
