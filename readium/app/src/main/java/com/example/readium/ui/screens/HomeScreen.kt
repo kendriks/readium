@@ -43,7 +43,6 @@ import coil.compose.AsyncImage
 fun ReadiumHomeScreen(
     onLogout: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
-    onNavigateToBookClubs: () -> Unit = {},
     authViewModel: AuthViewModel = viewModel()
 ) {
     val userProfile by authViewModel.userProfile.collectAsState()
@@ -116,7 +115,7 @@ fun ReadiumHomeScreen(
                             shape = RoundedCornerShape(8.dp),
                             color = ReadiumPrimary
                         ) {
-                            IconButton(onClick = { onNavigateToBookClubs() }) {
+                            IconButton(onClick = { /*ainda não implementado*/ }) {
                                 Icon(
                                     imageVector = Icons.Default.MenuBook,
                                     contentDescription = "livro",
@@ -274,4 +273,4 @@ fun ReadiumHomeScreenPreview() {
     ReadiumTheme {
         ReadiumHomeScreen()
     }
-} 
+}

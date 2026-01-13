@@ -24,7 +24,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.readium.ui.theme.*
+import com.example.readium.viewmodel.FriendsViewModel
 import coil.compose.AsyncImage
 
 @Composable
@@ -34,14 +36,15 @@ fun ProfileScreen(
     userPhotoUrl: String? = null,
     postsCount: Int = 13,
     booksCount: Int = 19,
-    friendsCount: Int = 89,
     onNavigateBack: () -> Unit = {},
     onNavigateToHome: () -> Unit = {},
     onNavigateToFriends: () -> Unit = {},
+    friendsViewModel: FriendsViewModel = viewModel(),
     onNavigateToEditProfile: () -> Unit = {},
     onNavigateToCreateThematicList: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(0) }
+    var friendsCount = friendsViewModel.friendsCount
 
     Scaffold(
         topBar = {
@@ -159,7 +162,7 @@ fun ProfileScreen(
             //conteúdo das abas
             when (selectedTab) {
                 0 -> {
-                    //aba de postagens
+                    // Tab de postagens
                     items(3) { index ->
                         PostCard(
                             userName = userName,
@@ -259,7 +262,7 @@ private fun ProfileTopBar(
                     modifier = Modifier.weight(1f)
                 )
 
-                IconButton(onClick = onNavigateToSettings) {
+                IconButton(onClick = { /*ainda não implementado*/ }) {
                     Icon(
                         imageVector = Icons.Default.Settings,
                         contentDescription = "Configurações",
