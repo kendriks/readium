@@ -1,35 +1,41 @@
 package com.example.readium.ui.screens
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.readium.data.model.ClubeLeitura
-import androidx.compose.foundation.background
-import com.example.readium.ui.theme.*
+import androidx.compose.ui.unit.sp
+import com.example.readium.ui.theme.ReadiumBackground
+import com.example.readium.ui.theme.ReadiumBlack
+import com.example.readium.ui.theme.ReadiumGrayMedium
+import com.example.readium.ui.theme.ReadiumPrimary
+import com.example.readium.ui.theme.ReadiumSecondary
+import com.example.readium.viewmodel.BookClubViewModel
 
 @Composable
 fun SearchBookClubsScreen(
+    viewModel: BookClubViewModel,
+    currentUserId: String,
     onNavigateBack: () -> Unit
 ) {
-    val clubesBusca = listOf(
-        ClubeLeitura(nomeClube = "Torcida Leitora Ceará", publico = true),
-        ClubeLeitura(nomeClube = "Fortaleza Book Club", publico = false),
-        ClubeLeitura(nomeClube = "Ferrão & Literatura", publico = true),
-        ClubeLeitura(nomeClube = "Icasa Readers", publico = false),
-        ClubeLeitura(nomeClube = "Horizonte Literário FC", publico = true)
-    )
+    val publicClubs = viewModel.publicClubs
 
     Scaffold(
-        topBar = {
-            ReadiumSimpleTopBar(
-                title = "Procurar clubes",
-                onBackClick = onNavigateBack
-            )
-        }
+        topBar = { ReadiumSimpleTopBar(title = "Explorar Clubes", onBackClick = onNavigateBack) }
     ) { paddingValues ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -37,12 +43,40 @@ fun SearchBookClubsScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
+            if (viewModel.isLoading) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = ReadiumPrimary)
+                }
+            } else if (publicClubs.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Nenhum clube público encontrado.", color = ReadiumGrayMedium)
+                }
+            } else {
+                LazyColumn {
+                    items(publicClubs) { clube ->
+                        Column {
+                            ClubeCard(clube = clube)
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            clubesBusca.forEach { clube ->
-                ClubeCard(clube = clube)
-                Spacer(modifier = Modifier.height(12.dp))
+                            // Verifica se já é membro (opcional, para UI mais refinada)
+                            if (!clube.members.contains(currentUserId)) {
+                                Button(
+                                    onClick = { viewModel.joinClub(clube, currentUserId) },
+                                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 16.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = ReadiumSecondary)
+                                ) {
+                                    Text("Entrar no Clube", color = ReadiumBlack)
+                                }
+                            } else {
+                                Text(
+                                    "Você já é membro",
+                                    color = ReadiumPrimary,
+                                    fontSize = 12.sp,
+                                    modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }

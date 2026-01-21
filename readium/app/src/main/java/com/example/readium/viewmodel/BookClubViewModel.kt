@@ -20,8 +20,10 @@ class BookClubViewModel(private val repository: BookClubRepository) : ViewModel(
 
     var isLoading by mutableStateOf(false)
         private set
-
-    // Carrega os clubes que o usuário participa
+    var draftName by mutableStateOf("")
+    var draftDescription by mutableStateOf("")
+    var draftIsPrivate by mutableStateOf(false)
+    var draftBookOfMonth by mutableStateOf("")
     fun loadUserClubs(userId: String) {
         viewModelScope.launch {
             isLoading = true
@@ -39,11 +41,7 @@ class BookClubViewModel(private val repository: BookClubRepository) : ViewModel(
         }
     }
 
-    // Criação de clube
-    fun createClub(
-        name: String,
-        description: String,
-        isPrivate: Boolean,
+    fun saveDraftClub(
         ownerId: String,
         ownerName: String,
         onSuccess: () -> Unit
@@ -51,17 +49,32 @@ class BookClubViewModel(private val repository: BookClubRepository) : ViewModel(
         viewModelScope.launch {
             isLoading = true
             val newClub = ClubeLeitura(
-                name = name,
-                description = description,
-                isPrivate = isPrivate,
+                name = draftName,
+                description = draftDescription,
+                isPrivate = draftIsPrivate,
+                currentBookTitle = draftBookOfMonth,
                 ownerId = ownerId,
                 ownerName = ownerName,
                 members = listOf(ownerId) // O criador já começa como membro
             )
             val success = repository.createClub(newClub)
             isLoading = false
-            if (success) onSuccess()
+
+            if (success) {
+                clearDraft() // Limpa o formulário
+                // Atualiza a lista local imediatamente para o usuário ver o novo clube
+                loadUserClubs(ownerId)
+                onSuccess()
+            }
         }
+    }
+
+    // Limpa os dados do rascunho (útil ao cancelar ou finalizar)
+    fun clearDraft() {
+        draftName = ""
+        draftDescription = ""
+        draftIsPrivate = false
+        draftBookOfMonth = ""
     }
 
     // Entrar em um clube

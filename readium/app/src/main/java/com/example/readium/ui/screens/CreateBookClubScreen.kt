@@ -1,47 +1,68 @@
 package com.example.readium.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.outlined.AddBox
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import com.example.readium.ui.theme.*
+import com.example.readium.ui.theme.ReadiumBackground
+import com.example.readium.ui.theme.ReadiumBlack
+import com.example.readium.ui.theme.ReadiumGrayMedium
+import com.example.readium.ui.theme.ReadiumMark
+import com.example.readium.ui.theme.ReadiumPrimary
+import com.example.readium.ui.theme.ReadiumWhite
+import com.example.readium.viewmodel.BookClubViewModel
 
 @Composable
 fun CreateBookClubScreen1(
+    viewModel: BookClubViewModel, // Parâmetro ViewModel
     onNavigateBack: () -> Unit = {},
     onNavigateToNext: () -> Unit = {},
     onNavigateToHome: () -> Unit = {}
 ) {
-    var clubName by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var moderators by remember { mutableStateOf("") }
-    var rules by remember { mutableStateOf("") }
-
     Scaffold(
-        topBar = {
-            CreateClubTopBar(onNavigateBack = onNavigateBack)
-        },
-        bottomBar = {
-            ReadiumBottomBar(
-                onHomeClick = onNavigateToHome,
-                onCreateClick = { },
-                onProfileClick = { }
-            )
-        }
+        topBar = { CreateClubTopBar(onNavigateBack = onNavigateBack) },
+        bottomBar = { ReadiumBottomBar(onHomeClick = onNavigateToHome, onCreateClick = { }, onProfileClick = { }) }
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -60,203 +81,93 @@ fun CreateBookClubScreen1(
                 )
             }
 
-            //foto 
+            // Foto
             item {
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = ReadiumWhite),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Box(
-                            modifier = Modifier
-                                .size(56.dp)
-                                .background(ReadiumMark.copy(alpha = 0.3f), RoundedCornerShape(8.dp)),
+                            modifier = Modifier.size(56.dp).background(ReadiumMark.copy(alpha = 0.3f), RoundedCornerShape(8.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Image,
-                                contentDescription = "Foto",
-                                tint = ReadiumMark,
-                                modifier = Modifier.size(28.dp)
-                            )
+                            Icon(Icons.Default.Image, "Foto", tint = ReadiumMark, modifier = Modifier.size(28.dp))
                         }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = "Foto para o clube",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = ReadiumBlack
-                        )
-                        Text(
-                            text = "Escolha uma foto ou arraste para cá",
-                            fontSize = 12.sp,
-                            color = ReadiumGrayMedium,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text("Foto para o clube", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = ReadiumBlack)
+                        Text("Escolha uma foto ou arraste para cá", fontSize = 12.sp, color = ReadiumGrayMedium)
                     }
                 }
             }
 
-            //nome
+            // Nome (Vínculo com ViewModel)
             item {
                 CreateClubTextField(
                     label = "Nome do clube",
-                    value = clubName,
-                    onValueChange = { },
+                    value = viewModel.draftName,
+                    onValueChange = { viewModel.draftName = it },
                     placeholder = "@nome"
                 )
             }
 
-            //descrição
+            // Descrição (Vínculo com ViewModel)
             item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                ) {
-                    Text(
-                        text = "Descrição (opcional)",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = ReadiumBlack,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
+                Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                    Text("Descrição (opcional)", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = ReadiumBlack, modifier = Modifier.padding(bottom = 8.dp))
                     OutlinedTextField(
-                        value = description,
-                        onValueChange = { description = it },
-                        placeholder = {
-                            Text(
-                                text = "Intre o texto aqui...",
-                                color = ReadiumGrayMedium,
-                                fontSize = 12.sp
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp),
+                        value = viewModel.draftDescription,
+                        onValueChange = { viewModel.draftDescription = it },
+                        placeholder = { Text("Insira o texto aqui...", color = ReadiumGrayMedium, fontSize = 12.sp) },
+                        modifier = Modifier.fillMaxWidth().height(100.dp),
                         shape = RoundedCornerShape(8.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = ReadiumPrimary,
-                            unfocusedBorderColor = ReadiumGrayMedium.copy(alpha = 0.5f),
-                            focusedContainerColor = ReadiumWhite,
-                            unfocusedContainerColor = ReadiumWhite
+                            focusedBorderColor = ReadiumPrimary, unfocusedBorderColor = ReadiumGrayMedium.copy(alpha = 0.5f),
+                            focusedContainerColor = ReadiumWhite, unfocusedContainerColor = ReadiumWhite
                         )
                     )
                 }
             }
 
-            //aidcionar moderadores
-            item {
-                CreateClubTextField(
-                    label = "Adicionar moderadores (opcional)",
-                    value = moderators,
-                    onValueChange = { },
-                    placeholder = "Digite o nome do usuário aqui..."
-                )
-            }
-
-            //regras do clube
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                ) {
-                    Text(
-                        text = "Regras para o clube (opcional)",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = ReadiumBlack,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
-                    OutlinedTextField(
-                        value = rules,
-                        onValueChange = { rules = it },
-                        placeholder = {
-                            Text(
-                                text = "Intre o texto aqui...",
-                                color = ReadiumGrayMedium,
-                                fontSize = 12.sp
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = ReadiumPrimary,
-                            unfocusedBorderColor = ReadiumGrayMedium.copy(alpha = 0.5f),
-                            focusedContainerColor = ReadiumWhite,
-                            unfocusedContainerColor = ReadiumWhite
-                        )
-                    )
-                }
-            }
-
-            //continuarr
+            // Botão Continuar
             item {
                 Button(
                     onClick = onNavigateToNext,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp)
-                        .height(56.dp),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp).height(56.dp),
                     shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ReadiumPrimary,
-                        contentColor = ReadiumWhite
-                    )
+                    colors = ButtonDefaults.buttonColors(containerColor = ReadiumPrimary)
                 ) {
-                    Text(
-                        text = "Continuar",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text("Continuar", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
-
-            item {
-                Spacer(modifier = Modifier.height(80.dp))
-            }
+            item { Spacer(Modifier.height(80.dp)) }
         }
     }
 }
 
 @Composable
 fun CreateBookClubScreen2(
+    viewModel: BookClubViewModel, // Parâmetro ViewModel
     onNavigateBack: () -> Unit = {},
-    onCreateClub: () -> Unit = {},
+    onCreateClub: () -> Unit = {}, // Callback de criação
     onNavigateToHome: () -> Unit = {}
 ) {
-    var bookOfMonth by remember { mutableStateOf("") }
-    var metas by remember { mutableStateOf("") }
-    var clubType by remember { mutableIntStateOf(0) } // 0: público, 1: membros aprovados
-    var approvedMembers by remember { mutableStateOf("") }
+    // Inicializa o estado local do botão de tipo com base no ViewModel
+    var clubTypeIndex by remember { mutableIntStateOf(if (viewModel.draftIsPrivate) 1 else 0) }
+
+    // Sincroniza a mudança do botão com o ViewModel
+    LaunchedEffect(clubTypeIndex) {
+        viewModel.draftIsPrivate = (clubTypeIndex == 1)
+    }
 
     Scaffold(
-        topBar = {
-            CreateClubTopBar(onNavigateBack = onNavigateBack)
-        },
-        bottomBar = {
-            ReadiumBottomBar(
-                onHomeClick = onNavigateToHome,
-                onCreateClick = { },
-                onProfileClick = { }
-            )
-        }
+        topBar = { CreateClubTopBar(onNavigateBack = onNavigateBack) },
+        bottomBar = { ReadiumBottomBar(onHomeClick = onNavigateToHome, onCreateClick = { }, onProfileClick = { }) }
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -266,30 +177,13 @@ fun CreateBookClubScreen2(
                 .padding(horizontal = 16.dp, vertical = 16.dp)
         ) {
             item {
-                Text(
-                    text = "alguns últimos ajustes...",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = ReadiumPrimary,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+                Text("alguns últimos ajustes...", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = ReadiumPrimary, modifier = Modifier.padding(bottom = 16.dp))
             }
 
-            //tipos de clube
+            // Tipo de Clube (Público vs Privado)
             item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                ) {
-                    Text(
-                        text = "Selecionar tipo de clube",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = ReadiumBlack,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
+                Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                    Text("Selecionar tipo de clube", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = ReadiumBlack, modifier = Modifier.padding(bottom = 8.dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -299,302 +193,105 @@ fun CreateBookClubScreen2(
                     ) {
                         ClubTypeButton(
                             label = "clube público",
-                            isSelected = clubType == 0,
-                            onClick = { clubType = 0 },
+                            isSelected = clubTypeIndex == 0,
+                            onClick = { clubTypeIndex = 0 },
                             modifier = Modifier.weight(1f)
                         )
                         ClubTypeButton(
-                            label = "membros aprovados",
-                            isSelected = clubType == 1,
-                            onClick = { clubType = 1 },
+                            label = "privado (requer aprovação)",
+                            isSelected = clubTypeIndex == 1,
+                            onClick = { clubTypeIndex = 1 },
                             modifier = Modifier.weight(1f)
                         )
                     }
                 }
             }
 
-            // Seção de membros aprovados (mostrar apenas se selecionado)
-            if (clubType == 1) {
-                item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                    ) {
-                        Text(
-                            text = "Membros aprovados",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = ReadiumBlack,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-
-                        OutlinedTextField(
-                            value = approvedMembers,
-                            onValueChange = { approvedMembers = it },
-                            placeholder = {
-                                Text(
-                                    text = "Digite os nomes dos membros aprovados...",
-                                    color = ReadiumGrayMedium,
-                                    fontSize = 12.sp
-                                )
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(100.dp),
-                            shape = RoundedCornerShape(8.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = ReadiumPrimary,
-                                unfocusedBorderColor = ReadiumGrayMedium.copy(alpha = 0.5f),
-                                focusedContainerColor = ReadiumWhite,
-                                unfocusedContainerColor = ReadiumWhite
-                            )
-                        )
-                    }
-                }
-            }
-
-            //selecionar livro do mês
+            // Livro do Mês (Vínculo com ViewModel)
             item {
                 CreateClubTextField(
                     label = "Selecionar livro do mês",
-                    value = bookOfMonth,
-                    onValueChange = { },
-                    placeholder = "@nome"
+                    value = viewModel.draftBookOfMonth,
+                    onValueChange = { viewModel.draftBookOfMonth = it },
+                    placeholder = "@nome do livro"
                 )
             }
 
-            //metas e sprints
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                ) {
-                    Text(
-                        text = "Metas e sprints",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = ReadiumBlack,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
-                    OutlinedTextField(
-                        value = metas,
-                        onValueChange = { metas = it },
-                        placeholder = {
-                            Text(
-                                text = "Intre o texto aqui...",
-                                color = ReadiumGrayMedium,
-                                fontSize = 12.sp
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = ReadiumPrimary,
-                            unfocusedBorderColor = ReadiumGrayMedium.copy(alpha = 0.5f),
-                            focusedContainerColor = ReadiumWhite,
-                            unfocusedContainerColor = ReadiumWhite
-                        )
-                    )
-                }
-            }
-
-            //criar clube
+            // Botão Criar
             item {
                 Button(
                     onClick = onCreateClub,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp)
-                        .height(56.dp),
+                    enabled = !viewModel.isLoading, // Desabilita se estiver carregando
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp).height(56.dp),
                     shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ReadiumPrimary,
-                        contentColor = ReadiumWhite
-                    )
+                    colors = ButtonDefaults.buttonColors(containerColor = ReadiumPrimary)
                 ) {
-                    Text(
-                        text = "Criar clube",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    if (viewModel.isLoading) {
+                        CircularProgressIndicator(color = ReadiumWhite, modifier = Modifier.size(24.dp))
+                    } else {
+                        Text("Criar clube", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
-
-            item {
-                Spacer(modifier = Modifier.height(80.dp))
-            }
+            item { Spacer(Modifier.height(80.dp)) }
         }
     }
 }
+
+// --- Componentes Auxiliares ---
 
 @Composable
 private fun CreateClubTopBar(onNavigateBack: () -> Unit) {
-    Box(modifier = Modifier.fillMaxWidth().padding(top = 34.dp, bottom = 0.dp)) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(76.dp),
-            color = ReadiumPrimary,
-            shape = RoundedCornerShape(0.dp),
-            tonalElevation = 2.dp
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(start = 0.dp, end = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onNavigateBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Voltar",
-                        tint = ReadiumWhite
-                    )
-                }
-
-                Text(
-                    text = "Criar novo clube de leitura",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = ReadiumWhite,
-                    modifier = Modifier.weight(1f)
-                )
+    Box(modifier = Modifier.fillMaxWidth().padding(top = 34.dp)) {
+        Surface(modifier = Modifier.fillMaxWidth().height(76.dp), color = ReadiumPrimary) {
+            Row(modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onNavigateBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar", tint = ReadiumWhite) }
+                Text("Criar novo clube", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = ReadiumWhite)
             }
         }
     }
 }
 
 @Composable
-private fun CreateClubTextField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-    ) {
-        Text(
-            text = label,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            color = ReadiumBlack,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
+private fun CreateClubTextField(label: String, value: String, onValueChange: (String) -> Unit, placeholder: String) {
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        Text(text = label, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = ReadiumBlack, modifier = Modifier.padding(bottom = 8.dp))
         OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = {
-                Text(
-                    text = placeholder,
-                    color = ReadiumGrayMedium,
-                    fontSize = 12.sp
-                )
-            },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = ReadiumPrimary,
-                unfocusedBorderColor = ReadiumGrayMedium.copy(alpha = 0.5f),
-                focusedContainerColor = ReadiumWhite,
-                unfocusedContainerColor = ReadiumWhite
-            )
+            value = value, onValueChange = onValueChange, placeholder = { Text(placeholder, color = ReadiumGrayMedium, fontSize = 12.sp) },
+            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp),
+            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = ReadiumPrimary, unfocusedBorderColor = ReadiumGrayMedium.copy(alpha = 0.5f), focusedContainerColor = ReadiumWhite, unfocusedContainerColor = ReadiumWhite)
         )
     }
 }
 
 @Composable
-private fun ClubTypeButton(
-    label: String,
-    isSelected: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit = { }
-) {
+private fun ClubTypeButton(label: String, isSelected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Button(
-        onClick = onClick,
-        modifier = modifier
-            .height(40.dp),
-        shape = RoundedCornerShape(6.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (isSelected) ReadiumPrimary else ReadiumWhite,
-            contentColor = if (isSelected) ReadiumWhite else ReadiumGrayMedium
-        ),
+        onClick = onClick, modifier = modifier.height(40.dp), shape = RoundedCornerShape(6.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = if (isSelected) ReadiumPrimary else ReadiumWhite, contentColor = if (isSelected) ReadiumWhite else ReadiumGrayMedium),
         border = if (!isSelected) BorderStroke(1.dp, ReadiumGrayMedium.copy(alpha = 0.5f)) else null
     ) {
-        Text(
-            text = label,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium
-        )
+        Text(text = label, fontSize = 12.sp, fontWeight = FontWeight.Medium)
     }
 }
 
 @Composable
-private fun ReadiumBottomBar(
-    onHomeClick: () -> Unit,
-    onCreateClick: () -> Unit,
-    onProfileClick: () -> Unit
-) {
+private fun ReadiumBottomBar(onHomeClick: () -> Unit, onCreateClick: () -> Unit, onProfileClick: () -> Unit) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(64.dp)
-            .background(ReadiumWhite)
-            .border(1.dp, ReadiumGrayMedium.copy(alpha = 0.2f)),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth().height(64.dp).background(ReadiumWhite).border(1.dp, ReadiumGrayMedium.copy(alpha = 0.2f)),
+        horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically
     ) {
-        BottomBarItem(
-            icon = Icons.Outlined.Home,
-            label = "home",
-            onClick = onHomeClick
-        )
-
-        BottomBarItem(
-            icon = Icons.Outlined.AddBox,
-            label = "criar",
-            onClick = onCreateClick
-        )
-
-        BottomBarItem(
-            icon = Icons.Outlined.Person,
-            label = "perfil",
-            onClick = onProfileClick
-        )
+        BottomBarItem(Icons.Outlined.Home, "home", onHomeClick)
+        BottomBarItem(Icons.Outlined.AddBox, "criar", onCreateClick)
+        BottomBarItem(Icons.Outlined.Person, "perfil", onProfileClick)
     }
 }
 
 @Composable
-private fun BottomBarItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    onClick: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            tint = ReadiumGrayMedium,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = label,
-            fontSize = 11.sp,
-            color = ReadiumGrayMedium
-        )
+private fun BottomBarItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
+    Column(modifier = Modifier.clickable(onClick = onClick).padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Icon(icon, label, tint = ReadiumGrayMedium, modifier = Modifier.size(24.dp))
+        Spacer(Modifier.height(4.dp))
+        Text(label, fontSize = 11.sp, color = ReadiumGrayMedium)
     }
 }
