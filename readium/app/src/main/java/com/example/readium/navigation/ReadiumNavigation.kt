@@ -31,8 +31,11 @@ import com.example.readium.ui.screens.AddBookScreen
 import com.example.readium.viewmodel.BooksViewModel
 import com.example.readium.viewmodel.AddBookUiState
 import androidx.compose.runtime.remember
+import com.example.readium.data.model.Book
 import com.example.readium.repository.BookRepository
+import com.example.readium.ui.screens.SearchBookScreen
 import com.example.readium.viewmodel.BooksViewModelFactory
+import com.example.readium.viewmodel.SearchBookViewModel
 import com.google.firebase.auth.FirebaseAuth
 
 sealed class Screen(val route: String) {
@@ -60,6 +63,7 @@ sealed class Screen(val route: String) {
     }
     object MyBooks : Screen("my_books")
     object AddBook : Screen("add_book")
+    object SearchBook : Screen("search_book")
 
 }
 
@@ -357,21 +361,66 @@ fun ReadiumNavigation(
                     // futuro: detalhes do livro
                 },
                 onAddBookClick = {
+                    navController.navigate(Screen.SearchBook.route)
+                },
+            )
+        }
+
+        composable(Screen.SearchBook.route) {
+
+            val searchBookViewModel: SearchBookViewModel = viewModel()
+
+            SearchBookScreen(
+                viewModel = searchBookViewModel,
+
+                onBookSelected = { book ->
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("book", book)
+
+                    navController.navigate(Screen.AddBook.route)
+                },
+
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+
+                onNavigateToProfile = {
+                    navController.navigate(Screen.Profile.route)
+                },
+                onCreateBookManually = {
                     navController.navigate(Screen.AddBook.route)
                 }
             )
         }
 
-        composable(Screen.AddBook.route) {
 
+
+
+        composable(Screen.AddBook.route) {
             val firebaseUser by authViewModel.user.collectAsState()
             val userProfile by authViewModel.userProfile.collectAsState()
 
             val userId = firebaseUser?.uid.orEmpty()
             val userName = userProfile?.name
 
+            val selectedBook =
+                navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<Book>("book")
+
+            val uiState = remember {
+                AddBookUiState(foundBook = selectedBook)
+            }
+
             AddBookScreen(
-                uiState = AddBookUiState(),
+                uiState = uiState,
                 onSave = { book ->
                     if (userId.isNotBlank()) {
                         booksViewModel.saveBook(
@@ -380,7 +429,7 @@ fun ReadiumNavigation(
                             userName = userName
                         )
                     }
-                    navController.popBackStack()
+                    navController.navigate(Screen.MyBooks.route)
                 },
                 onNavigateBack = {
                     navController.popBackStack()
@@ -395,8 +444,5 @@ fun ReadiumNavigation(
                 }
             )
         }
-
-
-
     }
 }
