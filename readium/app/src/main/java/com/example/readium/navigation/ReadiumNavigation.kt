@@ -11,12 +11,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.readium.data.model.Book
-import com.example.readium.repository.BookClubRepository
 import com.example.readium.repository.BookRepository
 import com.example.readium.repository.TradeRepository
 import com.example.readium.ui.screens.*
 import com.example.readium.viewmodel.*
 import com.google.firebase.auth.FirebaseAuth
+import com.example.readium.repository.BookClubRepository
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -45,6 +45,8 @@ sealed class Screen(val route: String) {
     object AddBook : Screen("add_book")
     object SearchBook : Screen("search_book")
     object SearchTrade : Screen("search_trade")
+    object EditBook : Screen("edit_book")
+    object BookDetails : Screen("book_details")
     object TradeProposals : Screen("trade_proposals")
 }
 
@@ -54,7 +56,7 @@ fun ReadiumNavigation(
     authViewModel: AuthViewModel = viewModel(),
     friendsViewModel: FriendsViewModel = viewModel()
 ) {
-    // ViewModels e Repositories existentes
+
     val repository = remember { BookRepository() }
     val factory = remember { BooksViewModelFactory(repository) }
     val booksViewModel: BooksViewModel = viewModel(factory = factory)
@@ -74,6 +76,7 @@ fun ReadiumNavigation(
     LaunchedEffect(userId) {
         userId?.let {
             friendsViewModel.loadFriends(it)
+            booksViewModel.loadBooks(it)
         }
     }
 
@@ -138,6 +141,7 @@ fun ReadiumNavigation(
         composable(Screen.Profile.route) {
             val userProfile by authViewModel.userProfile.collectAsState()
             ProfileScreen(
+                booksViewModel = booksViewModel,
                 userName = userProfile?.name ?: "name",
                 userBio = userProfile?.biography ?: "book lover <3",
                 userPhotoUrl = userProfile?.profilePhotoUrl,
@@ -169,6 +173,42 @@ fun ReadiumNavigation(
         }
         composable(Screen.MyBooks.route) {
             val firebaseUser by authViewModel.user.collectAsState()
+            val userId = firebaseUser?.uid.orEmpty()
+
+            LaunchedEffect(userId) {
+                if (userId.isNotBlank()) {
+                    booksViewModel.loadBooks(userId)
+                }
+            }
+
+            MyBooksScreen(
+                viewModel = booksViewModel,
+                userId = userId,
+                onBookClick = { book ->
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("book", book)
+
+                    navController.navigate(Screen.BookDetails.route)
+                }
+                ,
+                onAddBookClick = {
+                    navController.navigate(Screen.SearchBook.route)
+                },
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Screen.Profile.route) {
+                        popUpTo(Screen.Profile.route) { inclusive = true }
+                    }
+                }
+            )
             val uId = firebaseUser?.uid.orEmpty()
             LaunchedEffect(uId) { if (uId.isNotBlank()) booksViewModel.loadBooks(uId) }
             MyBooksScreen(viewModel = booksViewModel, userId = uId, onBookClick = { }, onAddBookClick = { navController.navigate(Screen.SearchBook.route) })
@@ -177,6 +217,83 @@ fun ReadiumNavigation(
             val searchBookViewModel: SearchBookViewModel = viewModel()
             SearchBookScreen(viewModel = searchBookViewModel, onBookSelected = { book -> navController.currentBackStackEntry?.savedStateHandle?.set("book", book); navController.navigate(Screen.AddBook.route) }, onNavigateBack = { navController.popBackStack() }, onNavigateToHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Home.route) { inclusive = true } } }, onNavigateToProfile = { navController.navigate(Screen.Profile.route) }, onCreateBookManually = { navController.navigate(Screen.AddBook.route) })
         }
+
+        composable(Screen.EditBook.route) {
+
+            val book =
+                navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<Book>("book")
+
+            if (book != null) {
+                EditBookScreen(
+                    book = book,
+                    onSave = { updatedBook ->
+                        booksViewModel.updateBook(updatedBook)
+                        navController.popBackStack()
+                    },
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToHome = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Home.route) { inclusive = true }
+                        }
+                    },
+                    onNavigateToProfile = {
+                        navController.navigate(Screen.Profile.route)
+                    },
+                    onNavigateToMyBooks = {
+                        navController.navigate(Screen.MyBooks.route)
+                    }
+                )
+            }
+        }
+
+
+        composable(Screen.BookDetails.route) {
+
+            val book =
+                navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<Book>("book")
+
+            if (book != null) {
+                BookDetailsScreen(
+                    book = book,
+
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+
+                    onNavigateToHome = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Home.route) { inclusive = true }
+                        }
+                    },
+
+                    onNavigateToProfile = {
+                        navController.navigate(Screen.Profile.route)
+                    },
+
+                    onEditBook = { selectedBook ->
+                        navController.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("book", selectedBook)
+
+                        navController.navigate(Screen.EditBook.route)
+                    },
+
+                    onDeleteBook = { selectedBook ->
+                        booksViewModel.deleteBook(selectedBook)
+                        navController.popBackStack()
+                    }
+                )
+            }
+        }
+
+
+
         composable(Screen.AddBook.route) {
             val firebaseUser by authViewModel.user.collectAsState()
             val userProfile by authViewModel.userProfile.collectAsState()

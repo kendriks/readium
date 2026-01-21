@@ -65,4 +65,32 @@ class BooksViewModel(
             }
         }
     }
+
+    fun updateBook(book: Book) {
+        viewModelScope.launch {
+            try {
+                repository.updateBook(book)
+
+                books = books.map {
+                    if (it.id == book.id) book else it
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun deleteBook(book: Book) {
+        viewModelScope.launch {
+            try {
+                repository.deleteBook(book)
+
+                books = books.filterNot { it.id == book.id }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 }
