@@ -40,22 +40,19 @@ fun RegisterStepTwoScreen(
     var biography by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<String?>(null) }
     var hasShownError by remember { mutableStateOf(false) }
-    
-    //selecionar imagem da galeria
+
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         selectedImageUri = uri?.toString()
-        hasShownError = false 
+        hasShownError = false
         authViewModel.clearAuthError()
-        println("DEBUG RegisterStepTwoScreen: Foto selecionada: $uri")
     }
-    
+
     val authState by authViewModel.authState.collectAsState()
 
     LaunchedEffect(selectedImageUri, authState) {
         if (!selectedImageUri.isNullOrBlank() && authState is AuthState.Error) {
-            println("DEBUG RegisterStepTwoScreen: Limpando erro pois nova foto foi selecionada")
             authViewModel.clearAuthError()
         }
     }
@@ -77,13 +74,13 @@ fun RegisterStepTwoScreen(
             TopAppBar(
                 title = { },
                 navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Voltar",
-                                tint = ReadiumOnBackground
-                            )
-                        }
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar",
+                            tint = ReadiumOnBackground
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent
@@ -94,7 +91,7 @@ fun RegisterStepTwoScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                    .background(ReadiumBackground)
+                .background(ReadiumBackground)
                 .padding(paddingValues)
                 .padding(24.dp),
             horizontalAlignment = Alignment.Start,
@@ -104,7 +101,7 @@ fun RegisterStepTwoScreen(
                 text = "Cadastre-se",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                    color = ReadiumPrimary,
+                color = ReadiumPrimary,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
             Row(
@@ -118,22 +115,17 @@ fun RegisterStepTwoScreen(
                         .size(72.dp)
                         .clip(CircleShape)
                         .border(2.dp, ReadiumPrimary, CircleShape)
-                        .clickable {
-                            //abre seletor de imagens
-                            imagePickerLauncher.launch("image/*")
-                        },
+                        .clickable { imagePickerLauncher.launch("image/*") },
                     contentAlignment = Alignment.Center
                 ) {
                     if (selectedImageUri != null) {
                         AsyncImage(
                             model = selectedImageUri,
                             contentDescription = "Foto selecionada",
-                            modifier = Modifier
-                                .size(72.dp)
-                                .clip(CircleShape),
+                            modifier = Modifier.size(72.dp).clip(CircleShape),
                             contentScale = ContentScale.Crop
                         )
-                        } else {
+                    } else {
                         Icon(
                             imageVector = Icons.Default.CameraAlt,
                             contentDescription = "Selecionar foto",
@@ -143,16 +135,9 @@ fun RegisterStepTwoScreen(
                     }
                 }
                 Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 16.dp)
+                    modifier = Modifier.weight(1f).padding(start = 16.dp)
                 ) {
-                    Text(
-                        text = "foto de perfil",
-                        fontSize = 14.sp,
-                        color = ReadiumPrimary
-                    )
-
+                    Text(text = "foto de perfil", fontSize = 14.sp, color = ReadiumPrimary)
                     Text(
                         text = "faça um upload dos seus arquivos ou tire uma foto agora.",
                         fontSize = 12.sp,
@@ -161,37 +146,33 @@ fun RegisterStepTwoScreen(
                     )
                 }
             }
-                    Text(
-                        text = "Nome de usuário",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = ReadiumOnBackground,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
+
+            Text(
+                text = "Nome de usuário",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = ReadiumOnBackground,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             OutlinedTextField(
                 value = username,
                 onValueChange = { username = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                 singleLine = true,
                 textStyle = LocalTextStyle.current.copy(color = ReadiumOnBackground),
                 placeholder = { Text("@nome", color = ReadiumOnSurface.copy(alpha = 0.6f)) }
             )
-                    Text(
-                        text = "Biografia (opcional)",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = ReadiumOnBackground,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
+            Text(
+                text = "Biografia (opcional)",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = ReadiumOnBackground,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             OutlinedTextField(
                 value = biography,
                 onValueChange = { biography = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
-                    .padding(bottom = 16.dp),
+                modifier = Modifier.fillMaxWidth().height(100.dp).padding(bottom = 16.dp),
                 maxLines = 3,
                 textStyle = LocalTextStyle.current.copy(color = ReadiumOnBackground),
                 placeholder = { Text("Insira o texto aqui...", color = ReadiumOnSurface.copy(alpha = 0.6f)) }
@@ -199,36 +180,17 @@ fun RegisterStepTwoScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            //mostra erros
             val currentAuthState = authState
             if (currentAuthState is AuthState.Error && hasShownError) {
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = ReadiumError
-                    )
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                    colors = CardDefaults.cardColors(containerColor = ReadiumError)
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text(
-                            text = currentAuthState.message,
-                            color = ReadiumWhite,
-                            fontSize = 14.sp
-                        )
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(text = currentAuthState.message, color = ReadiumWhite, fontSize = 14.sp)
                         Spacer(modifier = Modifier.height(8.dp))
-                        TextButton(
-                            onClick = { 
-                                authViewModel.clearAuthError()
-                                hasShownError = false
-                            }
-                        ) {
-                            Text(
-                                text = "Tentar novamente",
-                                color = ReadiumWhite
-                            )
+                        TextButton(onClick = { authViewModel.clearAuthError(); hasShownError = false }) {
+                            Text(text = "Tentar novamente", color = ReadiumWhite)
                         }
                     }
                 }
@@ -236,17 +198,18 @@ fun RegisterStepTwoScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-
             Button(
                 onClick = {
-                    if (username.isBlank()) {
-                        println("DEBUG RegisterStepTwoScreen: Nome está vazio")
-                        return@Button
+                    if (username.isBlank()) return@Button
+
+                    val cleanUsername = username.trim().removePrefix("@")
+
+                    if (!authViewModel.validatePassword(password)) {
+                        // Idealmente mostrariamos o erro aqui, mas o ViewModel.signUp também vai barrar
                     }
-                    
-                    println("DEBUG RegisterStepTwoScreen: Iniciando cadastro com nome=$username, foto=${selectedImageUri ?: "sem foto"}")
+
                     authViewModel.signUp(
-                        name = username,
+                        name = cleanUsername,
                         email = email,
                         password = password,
                         biography = biography,
@@ -254,30 +217,17 @@ fun RegisterStepTwoScreen(
                     )
                 },
                 enabled = authState !is AuthState.Loading && username.isNotBlank(),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
+                modifier = Modifier.fillMaxWidth().height(48.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (username.isBlank()) 
-                        ReadiumPrimary.copy(alpha = 0.5f) 
-                    else 
-                        ReadiumPrimary,
+                    containerColor = if (username.isBlank()) ReadiumPrimary.copy(alpha = 0.5f) else ReadiumPrimary,
                     contentColor = ReadiumOnPrimary
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
                 if (authState is AuthState.Loading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        color = ReadiumOnPrimary
-                    )
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = ReadiumOnPrimary)
                 } else {
-                    Text(
-                        text = "Continuar",
-                        color = ReadiumOnPrimary,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium
-                    )
+                    Text(text = "Continuar", color = ReadiumOnPrimary, fontSize = 16.sp, fontWeight = FontWeight.Medium)
                 }
             }
             
@@ -293,23 +243,17 @@ fun RegisterStepTwoScreen(
             }
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Você já é cadastrado? ",
-                    fontSize = 14.sp,
-                    color = ReadiumOnBackground
-                )
+                Text(text = "Você já é cadastrado? ", fontSize = 14.sp, color = ReadiumOnBackground)
                 Text(
                     text = "Faça login",
                     fontSize = 14.sp,
                     color = ReadiumPrimary,
                     fontWeight = FontWeight.Medium,
-                    modifier = Modifier.clickable { onNavigateBack() /*ainda falta implementar para que ele volte diretamente para login*/ }
+                    modifier = Modifier.clickable { onNavigateBack() }
                 )
             }
         }
