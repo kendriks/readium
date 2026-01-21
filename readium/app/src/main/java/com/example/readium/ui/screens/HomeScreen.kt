@@ -25,14 +25,16 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.readium.R
+import com.example.readium.data.model.Post
 import com.example.readium.ui.theme.*
 import com.example.readium.viewmodel.AuthViewModel
+import com.example.readium.viewmodel.HomeViewModel
+import com.example.readium.viewmodel.HomeViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,13 +43,21 @@ fun ReadiumHomeScreen(
     onNavigateToProfile: () -> Unit = {},
     onNavigateToBookClubs: () -> Unit = {},
     onNavigateToSearchTrade: () -> Unit = {},
+    onNavigateToAddPost: () -> Unit = {},
     authViewModel: AuthViewModel = viewModel()
 ) {
     val userProfile by authViewModel.userProfile.collectAsState()
     val user by authViewModel.user.collectAsState()
-    val sampleItems = remember { List(5) { index ->
-        "Post de exemplo #${index + 1}: Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-    } }
+
+    val homeViewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(authViewModel)
+    )
+    val posts by homeViewModel.posts.collectAsState()
+
+    LaunchedEffect(Unit) {
+        homeViewModel.loadFeed()
+    }
+
 
     Scaffold(
         containerColor = ReadiumBackground,
@@ -142,7 +152,7 @@ fun ReadiumHomeScreen(
         bottomBar = {
             ReadiumBottomBar(
                 onHomeClick = { },
-                onCreateClick = { /*ainda não implementado*/ },
+                onCreateClick = onNavigateToAddPost,
                 onProfileClick = onNavigateToProfile
             )
         }
@@ -170,16 +180,17 @@ fun ReadiumHomeScreen(
                 }
             }
 
-            items(sampleItems) { text ->
+            items(posts) { post ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp),
                     shape = RoundedCornerShape(8.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    elevation = CardDefaults.cardElevation(2.dp),
                     colors = CardDefaults.cardColors(containerColor = ReadiumWhite)
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
+
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
@@ -187,22 +198,42 @@ fun ReadiumHomeScreen(
                                     .clip(CircleShape)
                                     .background(ReadiumSecondary)
                             )
+
                             Spacer(modifier = Modifier.width(8.dp))
+
                             Column {
-                                Text(text = userProfile?.name ?: "name", fontWeight = FontWeight.Bold)
-                                Text(text = "@${user?.displayName ?: "user"}", fontSize = 12.sp, color = ReadiumGrayMedium)
+                                Text(
+                                    text = post.ownerName,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "@${post.ownerName}",
+                                    fontSize = 12.sp,
+                                    color = ReadiumGrayMedium
+                                )
                             }
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Text(text = text, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                        Text(
+                            text = post.content,
+                            maxLines = 3,
+                            overflow = TextOverflow.Ellipsis
+                        )
 
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Row {
-                            Text(text = "❤️ 10", color = ReadiumGrayMedium, modifier = Modifier.padding(end = 16.dp))
-                            Text(text = "💬 2 comentários", color = ReadiumGrayMedium)
+                            Text(
+                                text = "❤️ ${post.likes}",
+                                color = ReadiumGrayMedium,
+                                modifier = Modifier.padding(end = 16.dp)
+                            )
+                            Text(
+                                text = "💬 ${post.commentsCount} comentários",
+                                color = ReadiumGrayMedium
+                            )
                         }
                     }
                 }
@@ -277,13 +308,5 @@ private fun BottomBarItem(
             fontSize = 11.sp,
             color = if (isSelected) ReadiumPrimary else ReadiumGrayMedium
         )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ReadiumHomeScreenPreview() {
-    ReadiumTheme {
-        ReadiumHomeScreen()
     }
 }
