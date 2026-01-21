@@ -13,37 +13,10 @@ import androidx.navigation.compose.rememberNavController
 import com.example.readium.data.model.Book
 import com.example.readium.repository.BookRepository
 import com.example.readium.repository.TradeRepository
-import com.example.readium.ui.screens.AddBookScreen
-import com.example.readium.ui.screens.AddBooksOnListScreen
-import com.example.readium.ui.screens.BookClubsScreen
-import com.example.readium.ui.screens.BookDetailsScreen
-import com.example.readium.ui.screens.CreateBookClubScreen1
-import com.example.readium.ui.screens.CreateBookClubScreen2
-import com.example.readium.ui.screens.CreateThematicListScreen
-import com.example.readium.ui.screens.EditBookScreen
-import com.example.readium.ui.screens.EditProfileScreen
-import com.example.readium.ui.screens.FriendsScreen
-import com.example.readium.ui.screens.LoginScreen
-import com.example.readium.ui.screens.MyBooksScreen
-import com.example.readium.ui.screens.ProfileScreen
-import com.example.readium.ui.screens.ReadiumHomeScreen
-import com.example.readium.ui.screens.RegisterStepOneScreen
-import com.example.readium.ui.screens.RegisterStepTwoScreen
-import com.example.readium.ui.screens.SearchBookClubsScreen
-import com.example.readium.ui.screens.SearchBookScreen
-import com.example.readium.ui.screens.SearchTradeScreen
-import com.example.readium.ui.screens.SplashScreen
-import com.example.readium.ui.screens.TradeProposalsScreen
-import com.example.readium.viewmodel.AddBookUiState
-import com.example.readium.viewmodel.AuthState
-import com.example.readium.viewmodel.AuthViewModel
-import com.example.readium.viewmodel.BooksViewModel
-import com.example.readium.viewmodel.BooksViewModelFactory
-import com.example.readium.viewmodel.FriendsViewModel
-import com.example.readium.viewmodel.SearchBookViewModel
-import com.example.readium.viewmodel.TradeViewModel
-import com.example.readium.viewmodel.TradeViewModelFactory
+import com.example.readium.ui.screens.*
+import com.example.readium.viewmodel.*
 import com.google.firebase.auth.FirebaseAuth
+import com.example.readium.repository.BookClubRepository
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -92,6 +65,11 @@ fun ReadiumNavigation(
     val tradeFactory = remember { TradeViewModelFactory(tradeRepository) }
     val tradeViewModel: TradeViewModel = viewModel(factory = tradeFactory)
 
+    // NOVO: ViewModel de Clubes (Compartilhado)
+    val clubRepository = remember { BookClubRepository() }
+    val clubFactory = remember { BookClubViewModelFactory(clubRepository) }
+    val clubViewModel: BookClubViewModel = viewModel(factory = clubFactory)
+
     val authState by authViewModel.authState.collectAsState()
     val userId = FirebaseAuth.getInstance().currentUser?.uid
 
@@ -111,256 +89,88 @@ fun ReadiumNavigation(
         navController = navController,
         startDestination = startDestination
     ) {
+        // ... (Rotas de Splash, Login, Register, Home permanecem iguais) ...
         composable(Screen.Splash.route) {
             SplashScreen(
-                onNavigateToLogin = {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
-                },
-                onNavigateToHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
-                },
-                onNavigateToRegister = {
-                    navController.navigate(Screen.RegisterStepOne.route)
-                },
+                onNavigateToLogin = { navController.navigate(Screen.Login.route) { popUpTo(Screen.Splash.route) { inclusive = true } } },
+                onNavigateToHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Splash.route) { inclusive = true } } },
+                onNavigateToRegister = { navController.navigate(Screen.RegisterStepOne.route) },
                 authViewModel = authViewModel
             )
         }
-
         composable(Screen.Login.route) {
             LoginScreen(
-                onNavigateToRegister = {
-                    navController.navigate(Screen.RegisterStepOne.route)
-                },
-                onLoginSuccess = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
-                    }
-                },
+                onNavigateToRegister = { navController.navigate(Screen.RegisterStepOne.route) },
+                onLoginSuccess = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Login.route) { inclusive = true } } },
                 authViewModel = authViewModel
             )
         }
-
         composable(Screen.RegisterStepOne.route) {
             RegisterStepOneScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
+                onNavigateBack = { navController.popBackStack() },
                 onNavigateToStepTwo = { name, email, password, confirmPassword ->
                     val route = Screen.RegisterStepTwo.createRoute(name, email, password, confirmPassword)
                     navController.navigate(route)
                 }
             )
         }
-
         composable(Screen.RegisterStepTwo.route) { backStackEntry ->
             val email = backStackEntry.arguments?.getString("email") ?: ""
             val password = backStackEntry.arguments?.getString("password") ?: ""
-
             RegisterStepTwoScreen(
                 email = email,
                 password = password,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onRegistrationComplete = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
-                },
+                onNavigateBack = { navController.popBackStack() },
+                onRegistrationComplete = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Splash.route) { inclusive = true } } },
                 authViewModel = authViewModel
             )
         }
-
         composable(Screen.Home.route) {
             ReadiumHomeScreen(
                 onLogout = {
                     authViewModel.signOut()
-                    navController.navigate(Screen.Splash.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                    }
+                    navController.navigate(Screen.Splash.route) { popUpTo(Screen.Home.route) { inclusive = true } }
                 },
-                onNavigateToProfile = {
-                    navController.navigate(Screen.Profile.route)
-                },
-                onNavigateToBookClubs = {
-                    navController.navigate(Screen.BookClubs.route)
-                },
-                onNavigateToSearchTrade = {
-                    navController.navigate(Screen.SearchTrade.route)
-                },
+                onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
+                onNavigateToBookClubs = { navController.navigate(Screen.BookClubs.route) },
+                onNavigateToSearchTrade = { navController.navigate(Screen.SearchTrade.route) },
                 authViewModel = authViewModel
             )
         }
 
         composable(Screen.Profile.route) {
             val userProfile by authViewModel.userProfile.collectAsState()
-
             ProfileScreen(
                 booksViewModel = booksViewModel,
                 userName = userProfile?.name ?: "name",
                 userBio = userProfile?.biography ?: "book lover <3",
                 userPhotoUrl = userProfile?.profilePhotoUrl,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onNavigateToHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Profile.route) { inclusive = true }
-                    }
-                },
-                onNavigateToFriends = {
-                    navController.navigate(Screen.Friends.route)
-                },
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Profile.route) { inclusive = true } } },
+                onNavigateToFriends = { navController.navigate(Screen.Friends.route) },
                 friendsViewModel = friendsViewModel,
-                onNavigateToEditProfile = {
-                    navController.navigate(Screen.EditProfile.route)
-                },
-                onNavigateToCreateThematicList = {
-                    navController.navigate((Screen.CreateThematicList.route))
-                },
-                onNavigateToMyBooks = {
-                    navController.navigate(Screen.MyBooks.route)
-                },
-                onNavigateToProposals = {
-                    navController.navigate(Screen.TradeProposals.route)
-                }
+                onNavigateToEditProfile = { navController.navigate(Screen.EditProfile.route) },
+                onNavigateToCreateThematicList = { navController.navigate((Screen.CreateThematicList.route)) },
+                onNavigateToMyBooks = { navController.navigate(Screen.MyBooks.route) },
+                onNavigateToProposals = { navController.navigate(Screen.TradeProposals.route) }
             )
         }
 
+        // ... (Rotas de EditProfile, Friends, CreateThematicList, AddBooksOnList, MyBooks, SearchBook, AddBook, SearchTrade, TradeProposals permanecem iguais) ...
         composable(Screen.EditProfile.route) {
-            EditProfileScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onNavigateToHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.EditProfile.route) { inclusive = true }
-                    }
-                },
-                authViewModel = authViewModel
-            )
+            EditProfileScreen(onNavigateBack = { navController.popBackStack() }, onNavigateToHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.EditProfile.route) { inclusive = true } } }, authViewModel = authViewModel)
         }
-
         composable(Screen.Friends.route) {
-            FriendsScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onNavigateToHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Profile.route) { inclusive = true }
-                    }
-                },
-                onNavigateToProfile = {
-                    navController.navigate(Screen.Profile.route)
-                },
-                friendsViewModel = friendsViewModel
-            )
+            FriendsScreen(onNavigateBack = { navController.popBackStack() }, onNavigateToHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Profile.route) { inclusive = true } } }, onNavigateToProfile = { navController.navigate(Screen.Profile.route) }, friendsViewModel = friendsViewModel)
         }
-
         composable(Screen.CreateThematicList.route) {
-            CreateThematicListScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onNavigateToHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.CreateThematicList.route) { inclusive = true }
-                    }
-                },
-                onNavigateToProfile = {
-                    navController.navigate(Screen.Profile.route)
-                },
-                onNavigateToAddBookScreen = { nome, descricao ->
-                    val route = Screen.AddBooksOnList.createRoute(nome, descricao)
-                    navController.navigate(route)
-                }
-            )
+            CreateThematicListScreen(onNavigateBack = { navController.popBackStack() }, onNavigateToHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.CreateThematicList.route) { inclusive = true } } }, onNavigateToProfile = { navController.navigate(Screen.Profile.route) }, onNavigateToAddBookScreen = { nome, descricao -> val route = Screen.AddBooksOnList.createRoute(nome, descricao); navController.navigate(route) })
         }
-
-        composable(Screen.CreateBookClub1.route) {
-            CreateBookClubScreen1(
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onNavigateToNext = {
-                    navController.navigate(Screen.CreateBookClub2.route)
-                },
-                onNavigateToHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.CreateBookClub1.route) { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        composable(Screen.CreateBookClub2.route) {
-            CreateBookClubScreen2(
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onCreateClub = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.CreateBookClub2.route) { inclusive = true }
-                    }
-                },
-                onNavigateToHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.CreateBookClub2.route) { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        composable(Screen.BookClubs.route) {
-            BookClubsScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onNavigateToCreateClub = {
-                    navController.navigate(Screen.CreateBookClub1.route)
-                },
-                onNavigateToSearchClubs = {
-                    navController.navigate(Screen.SearchBookClubs.route)
-                }
-            )
-        }
-
-        composable(Screen.SearchBookClubs.route) {
-            SearchBookClubsScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
         composable(Screen.AddBooksOnList.route) { backStackEntry ->
             val name = backStackEntry.arguments?.getString("nome") ?: ""
             val description = backStackEntry.arguments?.getString("descricao") ?: ""
-
-            AddBooksOnListScreen(
-                nomeListaEncoded = name,
-                descricaoListaEncoded = description,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onNavigateToHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                    }
-                },
-                onNavigateToProfile = {
-                    navController.navigate(Screen.Profile.route) {
-                        popUpTo(Screen.Profile.route) { inclusive = true }
-                    }
-                }
-            )
+            AddBooksOnListScreen(nomeListaEncoded = name, descricaoListaEncoded = description, onNavigateBack = { navController.popBackStack() }, onNavigateToHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Home.route) { inclusive = true } } }, onNavigateToProfile = { navController.navigate(Screen.Profile.route) { popUpTo(Screen.Profile.route) { inclusive = true } } })
         }
-
         composable(Screen.MyBooks.route) {
             val firebaseUser by authViewModel.user.collectAsState()
             val userId = firebaseUser?.uid.orEmpty()
@@ -399,40 +209,13 @@ fun ReadiumNavigation(
                     }
                 }
             )
+            val uId = firebaseUser?.uid.orEmpty()
+            LaunchedEffect(uId) { if (uId.isNotBlank()) booksViewModel.loadBooks(uId) }
+            MyBooksScreen(viewModel = booksViewModel, userId = uId, onBookClick = { }, onAddBookClick = { navController.navigate(Screen.SearchBook.route) })
         }
-
         composable(Screen.SearchBook.route) {
-
             val searchBookViewModel: SearchBookViewModel = viewModel()
-
-            SearchBookScreen(
-                viewModel = searchBookViewModel,
-
-                onBookSelected = { book ->
-                    navController.currentBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("book", book)
-
-                    navController.navigate(Screen.AddBook.route)
-                },
-
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-
-                onNavigateToHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                    }
-                },
-
-                onNavigateToProfile = {
-                    navController.navigate(Screen.Profile.route)
-                },
-                onCreateBookManually = {
-                    navController.navigate(Screen.AddBook.route)
-                }
-            )
+            SearchBookScreen(viewModel = searchBookViewModel, onBookSelected = { book -> navController.currentBackStackEntry?.savedStateHandle?.set("book", book); navController.navigate(Screen.AddBook.route) }, onNavigateBack = { navController.popBackStack() }, onNavigateToHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Home.route) { inclusive = true } } }, onNavigateToProfile = { navController.navigate(Screen.Profile.route) }, onCreateBookManually = { navController.navigate(Screen.AddBook.route) })
         }
 
         composable(Screen.EditBook.route) {
@@ -514,55 +297,73 @@ fun ReadiumNavigation(
         composable(Screen.AddBook.route) {
             val firebaseUser by authViewModel.user.collectAsState()
             val userProfile by authViewModel.userProfile.collectAsState()
-
-            val userId = firebaseUser?.uid.orEmpty()
+            val uId = firebaseUser?.uid.orEmpty()
             val userName = userProfile?.name
+            val selectedBook = navController.previousBackStackEntry?.savedStateHandle?.get<Book>("book")
+            val uiState = remember { AddBookUiState(foundBook = selectedBook) }
+            AddBookScreen(uiState = uiState, onSave = { book -> if (uId.isNotBlank()) { booksViewModel.saveBook(book = book, userId = uId, userName = userName) }; navController.navigate(Screen.MyBooks.route) }, onNavigateBack = { navController.popBackStack() }, onNavigateHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Home.route) { inclusive = true } } }, onNavigateProfile = { navController.navigate(Screen.Profile.route) })
+        }
+        composable(Screen.SearchTrade.route) { SearchTradeScreen(viewModel = tradeViewModel, onNavigateBack = { navController.popBackStack() }) }
+        composable(Screen.TradeProposals.route) { TradeProposalsScreen(viewModel = tradeViewModel, onNavigateBack = { navController.popBackStack() }) }
 
-            val selectedBook =
-                navController.previousBackStackEntry
-                    ?.savedStateHandle
-                    ?.get<Book>("book")
+        // --- ROTAS DO CLUBE DE LEITURA (Atualizadas) ---
 
-            val uiState = remember {
-                AddBookUiState(foundBook = selectedBook)
-            }
+        composable(Screen.CreateBookClub1.route) {
+            // Usa o clubViewModel compartilhado
+            CreateBookClubScreen1(
+                viewModel = clubViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToNext = { navController.navigate(Screen.CreateBookClub2.route) },
+                onNavigateToHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.CreateBookClub1.route) { inclusive = true } } }
+            )
+        }
 
-            AddBookScreen(
-                uiState = uiState,
-                onSave = { book ->
-                    if (userId.isNotBlank()) {
-                        booksViewModel.saveBook(
-                            book = book,
-                            userId = userId,
-                            userName = userName
+        composable(Screen.CreateBookClub2.route) {
+            val userProfile by authViewModel.userProfile.collectAsState()
+            val currentUser = FirebaseAuth.getInstance().currentUser
+
+            CreateBookClubScreen2(
+                viewModel = clubViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onCreateClub = {
+                    if (currentUser != null) {
+                        clubViewModel.saveDraftClub(
+                            ownerId = currentUser.uid,
+                            ownerName = userProfile?.name ?: "Usuário",
+                            onSuccess = {
+                                // Volta para a home limpo
+                                navController.navigate(Screen.Home.route) {
+                                    popUpTo(Screen.Home.route) { inclusive = true }
+                                }
+                            }
                         )
                     }
-                    navController.navigate(Screen.MyBooks.route)
                 },
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onNavigateHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                    }
-                },
-                onNavigateProfile = {
-                    navController.navigate(Screen.Profile.route)
-                }
+                onNavigateToHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.CreateBookClub2.route) { inclusive = true } } }
             )
         }
 
-        composable(Screen.SearchTrade.route) {
-            SearchTradeScreen(
-                viewModel = tradeViewModel,
-                onNavigateBack = { navController.popBackStack() }
+        composable(Screen.BookClubs.route) {
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            LaunchedEffect(currentUser) {
+                currentUser?.let { clubViewModel.loadUserClubs(it.uid) }
+            }
+
+            BookClubsScreen(
+                viewModel = clubViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCreateClub = { navController.navigate(Screen.CreateBookClub1.route) },
+                onNavigateToSearchClubs = { navController.navigate(Screen.SearchBookClubs.route) }
             )
         }
 
-        composable(Screen.TradeProposals.route) {
-            TradeProposalsScreen(
-                viewModel = tradeViewModel,
+        composable(Screen.SearchBookClubs.route) {
+            LaunchedEffect(Unit) { clubViewModel.searchPublicClubs() }
+            val currentUser = FirebaseAuth.getInstance().currentUser
+
+            SearchBookClubsScreen(
+                viewModel = clubViewModel,
+                currentUserId = currentUser?.uid ?: "",
                 onNavigateBack = { navController.popBackStack() }
             )
         }
