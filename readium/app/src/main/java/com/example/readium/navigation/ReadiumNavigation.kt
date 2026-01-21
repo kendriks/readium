@@ -156,7 +156,11 @@ fun ReadiumNavigation(
         }
 
         composable(Screen.EditProfile.route) {
-            EditProfileScreen(onNavigateBack = { navController.popBackStack() }, onNavigateToHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.EditProfile.route) { inclusive = true } } }, authViewModel = authViewModel)
+            EditProfileScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.EditProfile.route) { inclusive = true } } },
+                authViewModel = authViewModel
+            )
         }
         composable(Screen.Friends.route) {
             FriendsScreen(onNavigateBack = { navController.popBackStack() }, onNavigateToHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Profile.route) { inclusive = true } } }, onNavigateToProfile = { navController.navigate(Screen.Profile.route) }, friendsViewModel = friendsViewModel)
@@ -179,7 +183,6 @@ fun ReadiumNavigation(
                 }
             }
 
-            // CORREÇÃO: Bloco duplicado removido. Esta é a única chamada correta.
             MyBooksScreen(
                 viewModel = booksViewModel,
                 userId = userId,
@@ -290,19 +293,46 @@ fun ReadiumNavigation(
         composable(Screen.AddBook.route) {
             val firebaseUser by authViewModel.user.collectAsState()
             val userProfile by authViewModel.userProfile.collectAsState()
+
             val uId = firebaseUser?.uid.orEmpty()
             val userName = userProfile?.name
+
+            // Lógica para montar a string de localização
+            val userLocation = if (!userProfile?.city.isNullOrBlank() && !userProfile?.state.isNullOrBlank()) {
+                "${userProfile!!.city} - ${userProfile!!.state}"
+            } else {
+                userProfile?.city ?: userProfile?.state
+            }
+
             val selectedBook = navController.previousBackStackEntry?.savedStateHandle?.get<Book>("book")
             val uiState = remember { AddBookUiState(foundBook = selectedBook) }
-            AddBookScreen(uiState = uiState, onSave = { book -> if (uId.isNotBlank()) { booksViewModel.saveBook(book = book, userId = uId, userName = userName) }; navController.navigate(Screen.MyBooks.route) }, onNavigateBack = { navController.popBackStack() }, onNavigateHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Home.route) { inclusive = true } } }, onNavigateProfile = { navController.navigate(Screen.Profile.route) })
+
+            AddBookScreen(
+                uiState = uiState,
+                onSave = { book ->
+                    if (uId.isNotBlank()) {
+                        // Agora passamos userLocation para o ViewModel
+                        booksViewModel.saveBook(
+                            book = book,
+                            userId = uId,
+                            userName = userName,
+                            userLocation = userLocation
+                        )
+                    }
+                    navController.navigate(Screen.MyBooks.route)
+                },
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Home.route) { inclusive = true } } },
+                onNavigateProfile = { navController.navigate(Screen.Profile.route) }
+            )
         }
+
         composable(Screen.SearchTrade.route) { SearchTradeScreen(viewModel = tradeViewModel, onNavigateBack = { navController.popBackStack() }) }
         composable(Screen.TradeProposals.route) { TradeProposalsScreen(viewModel = tradeViewModel, onNavigateBack = { navController.popBackStack() }) }
 
-        // --- ROTAS DO CLUBE DE LEITURA (Atualizadas) ---
+        // --- ROTAS DO CLUBE DE LEITURA ---
 
         composable(Screen.CreateBookClub1.route) {
-            // Usa o clubViewModel compartilhado
             CreateBookClubScreen1(
                 viewModel = clubViewModel,
                 onNavigateBack = { navController.popBackStack() },
@@ -324,7 +354,6 @@ fun ReadiumNavigation(
                             ownerId = currentUser.uid,
                             ownerName = userProfile?.name ?: "Usuário",
                             onSuccess = {
-                                // Volta para a home limpo
                                 navController.navigate(Screen.Home.route) {
                                     popUpTo(Screen.Home.route) { inclusive = true }
                                 }

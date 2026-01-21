@@ -36,7 +36,8 @@ class BooksViewModel(
     fun saveBook(
         book: Book,
         userId: String,
-        userName: String?
+        userName: String?,
+        userLocation: String?
     ) {
         viewModelScope.launch {
             try {
@@ -49,7 +50,8 @@ class BooksViewModel(
                 repository.addBook(
                     book = book,
                     userId = userId,
-                    userName = userName
+                    userName = userName,
+                    userLocation = userLocation
                 )
 
                 addBookUiState = addBookUiState.copy(
@@ -70,14 +72,8 @@ class BooksViewModel(
         viewModelScope.launch {
             try {
                 repository.updateBook(book)
-
-                books = books.map {
-                    if (it.id == book.id) book else it
-                }
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+                books = books.map { if (it.id == book.id) book else it }
+            } catch (e: Exception) { e.printStackTrace() }
         }
     }
 
@@ -87,10 +83,7 @@ class BooksViewModel(
                 repository.deleteBook(book)
 
                 books = books.filterNot { it.id == book.id }
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            } catch (e: Exception) { e.printStackTrace() }
         }
     }
 }
