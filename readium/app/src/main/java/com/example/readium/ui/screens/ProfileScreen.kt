@@ -34,6 +34,7 @@ fun ProfileScreen(
     onNavigateBack: () -> Unit = {},
     onNavigateToHome: () -> Unit = {},
     onNavigateToFriends: () -> Unit = {},
+    onNavigateToMyBooks: () -> Unit = {},
     friendsViewModel: FriendsViewModel = viewModel(),
     onNavigateToEditProfile: () -> Unit = {},
     onNavigateToCreateThematicList: () -> Unit = {}
@@ -103,7 +104,7 @@ fun ProfileScreen(
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             StatItem(count = postsCount, label = "postagens", onClick = {})
-                            StatItem(count = booksCount, label = "livros", onClick = {})
+                            StatItem(count = booksCount, label = "livros", onClick = onNavigateToMyBooks)
                             StatItem(count = friendsCount, label = "amigos", onClick = onNavigateToFriends)
                         }
                     }

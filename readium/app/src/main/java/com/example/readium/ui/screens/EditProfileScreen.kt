@@ -44,7 +44,6 @@ fun EditProfileScreen(
     val userProfile by authViewModel.userProfile.collectAsState()
     val updateState by authViewModel.profileUpdateState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var bio by remember { mutableStateOf("") }

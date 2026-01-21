@@ -10,7 +10,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,6 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.readium.ui.theme.*
 import com.example.readium.data.User
 import com.example.readium.viewmodel.FriendsViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun FriendsScreen(
@@ -31,11 +31,16 @@ fun FriendsScreen(
     onNavigateToProfile: () -> Unit = {},
     friendsViewModel: FriendsViewModel = viewModel()
 ) {
+    val auth = FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
+    val userId = currentUser?.uid
     var visualizandoAmigos by remember { mutableStateOf(true) }
     var friendToRemove by remember { mutableStateOf<User?>(null) }
 
-    LaunchedEffect(Unit) {
-        friendsViewModel.loadFriends()
+    LaunchedEffect(userId) {
+        userId?.let {
+            friendsViewModel.loadFriends(it)
+        }
     }
 
     Scaffold(
@@ -133,7 +138,9 @@ fun FriendsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        friendsViewModel.removeFriend(friend)
+                        userId?.let {
+                            friendsViewModel.removeFriend(it, friend)
+                        }
                     }
                 ) {
                     Text("Remover", color = ReadiumError)
