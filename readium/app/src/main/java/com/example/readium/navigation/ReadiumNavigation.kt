@@ -4,38 +4,42 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.readium.ui.screens.BookClubsScreen
-import com.example.readium.ui.screens.SearchBookClubsScreen
-import com.example.readium.ui.screens.AddBooksOnListScreen
-import com.example.readium.ui.screens.CreateThematicListScreen
-import com.example.readium.ui.screens.SplashScreen
-import com.example.readium.ui.screens.LoginScreen
-import com.example.readium.ui.screens.RegisterStepOneScreen
-import com.example.readium.ui.screens.RegisterStepTwoScreen
-import com.example.readium.ui.screens.ReadiumHomeScreen
-import com.example.readium.ui.screens.ProfileScreen
-import com.example.readium.ui.screens.EditProfileScreen
-import com.example.readium.ui.screens.CreateBookClubScreen1
-import com.example.readium.ui.screens.CreateBookClubScreen2
-import com.example.readium.ui.screens.FriendsScreen
-import com.example.readium.viewmodel.AuthViewModel
-import com.example.readium.viewmodel.AuthState
-import com.example.readium.viewmodel.FriendsViewModel
-import com.example.readium.ui.screens.MyBooksScreen
-import com.example.readium.ui.screens.AddBookScreen
-import com.example.readium.viewmodel.BooksViewModel
-import com.example.readium.viewmodel.AddBookUiState
-import androidx.compose.runtime.remember
 import com.example.readium.data.model.Book
 import com.example.readium.repository.BookRepository
+import com.example.readium.repository.TradeRepository
+import com.example.readium.ui.screens.AddBookScreen
+import com.example.readium.ui.screens.AddBooksOnListScreen
+import com.example.readium.ui.screens.BookClubsScreen
+import com.example.readium.ui.screens.CreateBookClubScreen1
+import com.example.readium.ui.screens.CreateBookClubScreen2
+import com.example.readium.ui.screens.CreateThematicListScreen
+import com.example.readium.ui.screens.EditProfileScreen
+import com.example.readium.ui.screens.FriendsScreen
+import com.example.readium.ui.screens.LoginScreen
+import com.example.readium.ui.screens.MyBooksScreen
+import com.example.readium.ui.screens.ProfileScreen
+import com.example.readium.ui.screens.ReadiumHomeScreen
+import com.example.readium.ui.screens.RegisterStepOneScreen
+import com.example.readium.ui.screens.RegisterStepTwoScreen
+import com.example.readium.ui.screens.SearchBookClubsScreen
 import com.example.readium.ui.screens.SearchBookScreen
+import com.example.readium.ui.screens.SearchTradeScreen
+import com.example.readium.ui.screens.SplashScreen
+import com.example.readium.viewmodel.AddBookUiState
+import com.example.readium.viewmodel.AuthState
+import com.example.readium.viewmodel.AuthViewModel
+import com.example.readium.viewmodel.BooksViewModel
 import com.example.readium.viewmodel.BooksViewModelFactory
+import com.example.readium.viewmodel.FriendsViewModel
 import com.example.readium.viewmodel.SearchBookViewModel
+import com.example.readium.viewmodel.TradeViewModel
+import com.example.readium.viewmodel.TradeViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 
 sealed class Screen(val route: String) {
@@ -64,6 +68,7 @@ sealed class Screen(val route: String) {
     object MyBooks : Screen("my_books")
     object AddBook : Screen("add_book")
     object SearchBook : Screen("search_book")
+    object SearchTrade : Screen("search_trade")
 
 }
 
@@ -74,14 +79,13 @@ fun ReadiumNavigation(
     friendsViewModel: FriendsViewModel = viewModel()
 ) {
 
-    val repository = remember {
-        BookRepository()
-    }
-    val factory = remember {
-        BooksViewModelFactory(repository)
-    }
-
+    val repository = remember { BookRepository() }
+    val factory = remember { BooksViewModelFactory(repository) }
     val booksViewModel: BooksViewModel = viewModel(factory = factory)
+
+    val tradeRepository = remember { TradeRepository() }
+    val tradeFactory = remember { TradeViewModelFactory(tradeRepository) }
+    val tradeViewModel: TradeViewModel = viewModel(factory = tradeFactory)
 
     val authState by authViewModel.authState.collectAsState()
     val userId = FirebaseAuth.getInstance().currentUser?.uid
@@ -92,7 +96,6 @@ fun ReadiumNavigation(
         }
     }
 
-    //determina rota inicial baseada no estado de autenticação
     val startDestination = when (authState) {
         is AuthState.Authenticated -> Screen.Home.route
         else -> Screen.Splash.route
@@ -179,6 +182,9 @@ fun ReadiumNavigation(
                 },
                 onNavigateToBookClubs = {
                     navController.navigate(Screen.BookClubs.route)
+                },
+                onNavigateToSearchTrade = {
+                    navController.navigate(Screen.SearchTrade.route)
                 },
                 authViewModel = authViewModel
             )
@@ -442,6 +448,14 @@ fun ReadiumNavigation(
                 onNavigateProfile = {
                     navController.navigate(Screen.Profile.route)
                 }
+            )
+        }
+
+        // Rota para Tela de Busca de Trocas
+        composable(Screen.SearchTrade.route) {
+            SearchTradeScreen(
+                viewModel = tradeViewModel,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }

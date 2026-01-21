@@ -1,35 +1,38 @@
 package com.example.readium.ui.screens
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.outlined.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.outlined.AddBox
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.border
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import com.example.readium.R
 import com.example.readium.ui.theme.*
 import com.example.readium.viewmodel.AuthViewModel
-import androidx.compose.ui.res.painterResource
-import com.example.readium.R
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextOverflow
-import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +40,7 @@ fun ReadiumHomeScreen(
     onLogout: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToBookClubs: () -> Unit = {},
+    onNavigateToSearchTrade: () -> Unit = {},
     authViewModel: AuthViewModel = viewModel()
 ) {
     val userProfile by authViewModel.userProfile.collectAsState()
@@ -149,6 +153,23 @@ fun ReadiumHomeScreen(
                 .padding(paddingValues)
                 .padding(horizontal = 12.dp, vertical = 16.dp)
         ) {
+            item {
+                Button(
+                    onClick = { onNavigateToSearchTrade() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = ReadiumPrimary)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.SwapHoriz,
+                        contentDescription = null,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text("Buscar Trocas")
+                }
+            }
+
             items(sampleItems) { text ->
                 Card(
                     modifier = Modifier
