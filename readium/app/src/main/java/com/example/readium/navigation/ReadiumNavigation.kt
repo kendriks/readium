@@ -31,6 +31,7 @@ import com.example.readium.ui.screens.SearchBookClubsScreen
 import com.example.readium.ui.screens.SearchBookScreen
 import com.example.readium.ui.screens.SearchTradeScreen
 import com.example.readium.ui.screens.SplashScreen
+import com.example.readium.ui.screens.TradeProposalsScreen
 import com.example.readium.viewmodel.AddBookUiState
 import com.example.readium.viewmodel.AuthState
 import com.example.readium.viewmodel.AuthViewModel
@@ -69,7 +70,7 @@ sealed class Screen(val route: String) {
     object AddBook : Screen("add_book")
     object SearchBook : Screen("search_book")
     object SearchTrade : Screen("search_trade")
-
+    object TradeProposals : Screen("trade_proposals")
 }
 
 @Composable
@@ -217,7 +218,11 @@ fun ReadiumNavigation(
                 },
                 onNavigateToMyBooks = {
                     navController.navigate(Screen.MyBooks.route)
-                })
+                },
+                onNavigateToProposals = {
+                    navController.navigate(Screen.TradeProposals.route)
+                }
+            )
         }
 
         composable(Screen.EditProfile.route) {
@@ -406,9 +411,6 @@ fun ReadiumNavigation(
             )
         }
 
-
-
-
         composable(Screen.AddBook.route) {
             val firebaseUser by authViewModel.user.collectAsState()
             val userProfile by authViewModel.userProfile.collectAsState()
@@ -451,9 +453,15 @@ fun ReadiumNavigation(
             )
         }
 
-        // Rota para Tela de Busca de Trocas
         composable(Screen.SearchTrade.route) {
             SearchTradeScreen(
+                viewModel = tradeViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.TradeProposals.route) {
+            TradeProposalsScreen(
                 viewModel = tradeViewModel,
                 onNavigateBack = { navController.popBackStack() }
             )
