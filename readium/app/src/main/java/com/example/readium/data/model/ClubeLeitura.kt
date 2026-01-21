@@ -1,13 +1,16 @@
 package com.example.readium.data.model
 
+import java.util.Date
 data class ClubeLeitura(
-    val id: String = "",
-    val nomeClube: String = "",
-    val descricaoClube: String = "",
-    val publico: Boolean = true,
-    val Livro: Book? = null,
-    val membros: List<String> = emptyList()
-) {
-    constructor() : this("", "", "", true, null, emptyList())
-}
-
+    var id: String = "",
+    val name: String = "",
+    val description: String = "",
+    val isPrivate: Boolean = false,
+    val ownerId: String = "",
+    val ownerName: String = "",
+    val members: List<String> = emptyList(),
+    val pendingRequests: List<String> = emptyList(),
+    val currentBookTitle: String? = null,
+    val createdAt: Date = Date(),
+    val bannerUrl: String? = null
+)
