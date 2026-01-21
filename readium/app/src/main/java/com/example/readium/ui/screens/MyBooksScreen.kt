@@ -239,7 +239,7 @@ private fun ReadiumBottomBar(
         BottomBarItem(
             icon = Icons.Outlined.AddBox,
             label = "criar",
-            onClick = onCreateClick
+            onClick = {}
         )
 
         BottomBarItem(

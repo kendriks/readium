@@ -25,9 +25,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.readium.ui.theme.*
 import com.example.readium.viewmodel.FriendsViewModel
 import coil.compose.AsyncImage
+import com.example.readium.viewmodel.BooksViewModel
 
 @Composable
 fun ProfileScreen(
+    booksViewModel: BooksViewModel = viewModel(),
     userName: String = "name",
     userBio: String = "book lover <3",
     userPhotoUrl: String? = null,
@@ -42,7 +44,7 @@ fun ProfileScreen(
     var selectedTab by remember { mutableIntStateOf(0) }
     val friendsCount = friendsViewModel.friendsCount
     val postsCount = 13
-    val booksCount = 19
+    val booksCount = booksViewModel.books.size
 
     Scaffold(
         topBar = {
