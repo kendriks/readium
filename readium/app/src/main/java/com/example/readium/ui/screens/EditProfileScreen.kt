@@ -33,7 +33,7 @@ import com.example.readium.viewmodel.ProfileUpdateState
 import coil.compose.AsyncImage
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.runtime.remember
+import kotlinx.coroutines.launch
 
 @Composable
 fun EditProfileScreen(
@@ -44,6 +44,8 @@ fun EditProfileScreen(
     val userProfile by authViewModel.userProfile.collectAsState()
     val updateState by authViewModel.profileUpdateState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var bio by remember { mutableStateOf("") }
@@ -59,7 +61,7 @@ fun EditProfileScreen(
             bio = it.biography
         }
     }
-    
+
     //navegar de volta ao concluir atualização e resetar estado
     LaunchedEffect(updateState) {
         when (val state = updateState) {
@@ -76,7 +78,7 @@ fun EditProfileScreen(
             else -> {}
         }
     }
-    
+
     //launcher para selecionar imagem
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -283,6 +285,8 @@ fun EditProfileScreen(
                         )
                     }
 
+                    val isPasswordError = password.isNotEmpty() && !authViewModel.validatePassword(password)
+
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
@@ -295,20 +299,44 @@ fun EditProfileScreen(
                         visualTransformation = PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp),
+                        isError = isPasswordError,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = ReadiumPrimary,
                             unfocusedBorderColor = ReadiumGrayMedium.copy(alpha = 0.5f),
                             focusedContainerColor = ReadiumWhite,
-                            unfocusedContainerColor = ReadiumWhite
+                            unfocusedContainerColor = ReadiumWhite,
+                            errorBorderColor = ReadiumError
                         )
                     )
+
+                    if (isPasswordError) {
+                        Text(
+                            text = "A senha deve ter no mínimo 8 caracteres, contendo letras e números.",
+                            color = ReadiumError,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                        )
+                    }
                 }
             }
-
             //botão de salvar alterações
             item {
                 Button(
                     onClick = {
+                        if (password.isNotEmpty()) {
+                            if (!authViewModel.validatePassword(password)) {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Senha inválida: A senha deve ter no mínimo 8 caracteres, contendo letras e números.")
+                                }
+                                return@Button
+                            }
+
+                            authViewModel.updatePassword(password)
+
+                        }
+
+                        // 2. Lógica de Atualizar Perfil (Nome/Bio/Foto)
+                        // Só chama se não estivermos apenas trocando a senha (ou chama ambos)
                         authViewModel.updateUserProfile(
                             name = name,
                             biography = bio,

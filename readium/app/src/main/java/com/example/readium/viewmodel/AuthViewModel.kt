@@ -30,7 +30,34 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     init {
         checkAuthState()
     }
-    
+
+    fun validatePassword(password: String): Boolean {
+        if (password.length < 8) return false
+        val hasLetter = password.any { it.isLetter() }
+        val hasDigit = password.any { it.isDigit() }
+        return hasLetter && hasDigit
+    }
+
+    fun updatePassword(newPassword: String) {
+        val user = _user.value
+        if (user != null) {
+            _profileUpdateState.value = ProfileUpdateState.Loading
+
+            user.updatePassword(newPassword)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        _profileUpdateState.value = ProfileUpdateState.Success
+                    } else {
+                        _profileUpdateState.value = ProfileUpdateState.Error(
+                            task.exception?.message ?: "Erro ao atualizar senha. Tente fazer login novamente."
+                        )
+                    }
+                }
+        } else {
+            _profileUpdateState.value = ProfileUpdateState.Error("Usuário não autenticado")
+        }
+    }
+
     private fun checkAuthState() {
         val currentUser = repository.getCurrentUser()
         _user.value = currentUser
@@ -61,8 +88,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
     
     fun signUp(name: String, email: String, password: String, biography: String = "", profilePhotoUri: String? = null) {
-        //validação de campos obrigatórios(foto é opcional)
-        
+
         if (name.isBlank()) {
             _authState.value = AuthState.Error("Nome de usuário é obrigatório")
             return
@@ -72,27 +98,25 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             _authState.value = AuthState.Error("Email é obrigatório")
             return
         }
-        
-        if (password.isBlank()) {
-            _authState.value = AuthState.Error("Senha é obrigatória")
+
+        // --- Validação no momento do Cadastro ---
+        if (!validatePassword(password)) {
+            _authState.value = AuthState.Error("A senha deve ter no mínimo 8 caracteres, contendo letras e números.")
             return
         }
         
         viewModelScope.launch {
             _authState.value = AuthState.Loading
-            println("DEBUG AuthViewModel.signUp: Iniciando cadastro com email=$email, name=$name, photoUri=$profilePhotoUri")
-            
+
             val result = repository.createUserWithEmail(email, password, name, biography, profilePhotoUri)
             
             result.fold(
                 onSuccess = { user ->
-                    println("DEBUG AuthViewModel.signUp: Cadastro bem-sucedido para $email")
                     _user.value = user
                     user?.let { loadUserProfile(it.uid) }
                     _authState.value = AuthState.Authenticated
                 },
                 onFailure = { exception ->
-                    println("DEBUG AuthViewModel.signUp: Erro no cadastro: ${exception.message}")
                     exception.printStackTrace()
                     _authState.value = AuthState.Error(exception.message ?: "Erro ao criar conta")
                 }
