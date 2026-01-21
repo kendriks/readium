@@ -37,7 +37,8 @@ fun ProfileScreen(
     onNavigateToMyBooks: () -> Unit = {},
     friendsViewModel: FriendsViewModel = viewModel(),
     onNavigateToEditProfile: () -> Unit = {},
-    onNavigateToCreateThematicList: () -> Unit = {}
+    onNavigateToCreateThematicList: () -> Unit = {},
+    onNavigateToProposals: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val friendsCount = friendsViewModel.friendsCount
@@ -198,6 +199,24 @@ fun ProfileScreen(
                                 )
                             ) {
                                 Text("nova lista +")
+                            }
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Button(
+                                onClick = onNavigateToProposals,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = ReadiumSecondary, // Cor secundária para diferenciar
+                                    contentColor = ReadiumBlack
+                                )
+                            ) {
+                                Icon(Icons.Default.SwapHoriz, contentDescription = null, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Ver Propostas de Troca")
                             }
 
                             Spacer(modifier = Modifier.height(24.dp))

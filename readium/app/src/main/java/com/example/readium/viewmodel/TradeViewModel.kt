@@ -8,12 +8,17 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.readium.data.model.Book
 import com.example.readium.data.model.TradeProposal
+import com.example.readium.data.model.TradeStatus
 import com.example.readium.repository.TradeRepository
 import kotlinx.coroutines.launch
 
 class TradeViewModel(private val repository: TradeRepository) : ViewModel() {
 
     var searchResults by mutableStateOf<List<Book>>(emptyList())
+        private set
+
+    // Lista de propostas recebidas
+    var receivedProposals by mutableStateOf<List<TradeProposal>>(emptyList())
         private set
 
     var isLoading by mutableStateOf(false)
@@ -53,6 +58,36 @@ class TradeViewModel(private val repository: TradeRepository) : ViewModel() {
                 "Proposta enviada para ${book.ownerDisplayName}!"
             } else {
                 "Erro ao enviar proposta."
+            }
+        }
+    }
+
+    // Carregar propostas recebidas
+    fun loadReceivedProposals(userId: String) {
+        viewModelScope.launch {
+            isLoading = true
+            receivedProposals = repository.getReceivedProposals(userId)
+            isLoading = false
+        }
+    }
+
+    // Responder a uma proposta
+    fun respondToProposal(proposal: TradeProposal, accept: Boolean) {
+        viewModelScope.launch {
+            val newStatus = if (accept) TradeStatus.ACCEPTED else TradeStatus.REJECTED
+
+            // Passamos agora o ID do livro também
+            val success = repository.updateProposalStatus(
+                proposalId = proposal.id,
+                bookId = proposal.desiredBookId,
+                newStatus = newStatus
+            )
+
+            if (success) {
+                // Atualiza a lista localmente
+                receivedProposals = receivedProposals.map {
+                    if (it.id == proposal.id) it.copy(status = newStatus) else it
+                }
             }
         }
     }
