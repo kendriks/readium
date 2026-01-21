@@ -6,7 +6,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.readium.data.User
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -14,8 +13,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 class FriendsViewModel : ViewModel() {
 
     private val db = FirebaseFirestore.getInstance()
-    private val auth = FirebaseAuth.getInstance()
-    private val currentUserId = auth.currentUser?.uid ?: ""
 
     var friends = mutableStateListOf<User>()
         private set
@@ -25,12 +22,12 @@ class FriendsViewModel : ViewModel() {
     var isLoading by mutableStateOf(false)
         private set
 
-    fun loadFriends() {
+    fun loadFriends(userId: String) {
         isLoading = true
         friends.clear()
 
         db.collection("friends")
-            .document(currentUserId)
+            .document(userId)
             .get()
             .addOnSuccessListener { doc ->
 
@@ -77,12 +74,12 @@ class FriendsViewModel : ViewModel() {
             }
     }
 
-    fun removeFriend(friend: User) {
+    fun removeFriend(userId: String, friend: User) {
         val friendId = friend.id ?: return
 
         isLoading = true
 
-        val currentUserRef = db.collection("friends").document(currentUserId)
+        val currentUserRef = db.collection("friends").document(userId)
         val friendRef = db.collection("friends").document(friendId)
 
         db.runBatch { batch ->
@@ -96,7 +93,7 @@ class FriendsViewModel : ViewModel() {
             batch.update(
                 friendRef,
                 "ids_friends",
-                FieldValue.arrayRemove(currentUserId)
+                FieldValue.arrayRemove(userId)
             )
 
         }.addOnSuccessListener {

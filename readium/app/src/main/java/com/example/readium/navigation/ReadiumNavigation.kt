@@ -1,6 +1,7 @@
 package com.example.readium.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -25,6 +26,14 @@ import com.example.readium.ui.screens.FriendsScreen
 import com.example.readium.viewmodel.AuthViewModel
 import com.example.readium.viewmodel.AuthState
 import com.example.readium.viewmodel.FriendsViewModel
+import com.example.readium.ui.screens.MyBooksScreen
+import com.example.readium.ui.screens.AddBookScreen
+import com.example.readium.viewmodel.BooksViewModel
+import com.example.readium.viewmodel.AddBookUiState
+import androidx.compose.runtime.remember
+import com.example.readium.repository.BookRepository
+import com.example.readium.viewmodel.BooksViewModelFactory
+import com.google.firebase.auth.FirebaseAuth
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -49,6 +58,9 @@ sealed class Screen(val route: String) {
             return "addBooksOnList/$nome/$descricao"
         }
     }
+    object MyBooks : Screen("my_books")
+    object AddBook : Screen("add_book")
+
 }
 
 @Composable
@@ -57,8 +69,24 @@ fun ReadiumNavigation(
     authViewModel: AuthViewModel = viewModel(),
     friendsViewModel: FriendsViewModel = viewModel()
 ) {
+
+    val repository = remember {
+        BookRepository()
+    }
+    val factory = remember {
+        BooksViewModelFactory(repository)
+    }
+
+    val booksViewModel: BooksViewModel = viewModel(factory = factory)
+
     val authState by authViewModel.authState.collectAsState()
-    friendsViewModel.loadFriends()
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+
+    LaunchedEffect(userId) {
+        userId?.let {
+            friendsViewModel.loadFriends(it)
+        }
+    }
 
     //determina rota inicial baseada no estado de autenticação
     val startDestination = when (authState) {
@@ -176,6 +204,9 @@ fun ReadiumNavigation(
                 },
                 onNavigateToCreateThematicList = {
                     navController.navigate((Screen.CreateThematicList.route))
+                },
+                onNavigateToMyBooks = {
+                    navController.navigate(Screen.MyBooks.route)
                 })
         }
 
@@ -308,6 +339,64 @@ fun ReadiumNavigation(
                 }
             )
         }
+
+        composable(Screen.MyBooks.route) {
+            val firebaseUser by authViewModel.user.collectAsState()
+            val userId = firebaseUser?.uid.orEmpty()
+
+            LaunchedEffect(userId) {
+                if (userId.isNotBlank()) {
+                    booksViewModel.loadBooks(userId)
+                }
+            }
+
+            MyBooksScreen(
+                viewModel = booksViewModel,
+                userId = userId,
+                onBookClick = { book ->
+                    // futuro: detalhes do livro
+                },
+                onAddBookClick = {
+                    navController.navigate(Screen.AddBook.route)
+                }
+            )
+        }
+
+        composable(Screen.AddBook.route) {
+
+            val firebaseUser by authViewModel.user.collectAsState()
+            val userProfile by authViewModel.userProfile.collectAsState()
+
+            val userId = firebaseUser?.uid.orEmpty()
+            val userName = userProfile?.name
+
+            AddBookScreen(
+                uiState = AddBookUiState(),
+                onSave = { book ->
+                    if (userId.isNotBlank()) {
+                        booksViewModel.saveBook(
+                            book = book,
+                            userId = userId,
+                            userName = userName
+                        )
+                    }
+                    navController.popBackStack()
+                },
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onNavigateProfile = {
+                    navController.navigate(Screen.Profile.route)
+                }
+            )
+        }
+
+
 
     }
 }

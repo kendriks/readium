@@ -88,7 +88,7 @@ fun FriendsSolicitationScreen(
                             onAddFriend = {
                                 addFriend(user, db, currentUserId) { message ->
                                     confirmationMessage = message
-                                    friendsViewModel.loadFriends()
+                                    friendsViewModel.loadFriends(currentUserId)
                                 }
                             }
                         )
