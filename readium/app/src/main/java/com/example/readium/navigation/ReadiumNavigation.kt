@@ -133,6 +133,7 @@ fun ReadiumNavigation(
                 onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
                 onNavigateToBookClubs = { navController.navigate(Screen.BookClubs.route) },
                 onNavigateToSearchTrade = { navController.navigate(Screen.SearchTrade.route) },
+                onNavigateToCreateBookClub = { navController.navigate(Screen.CreateBookClub1.route) },
                 authViewModel = authViewModel
             )
         }
@@ -151,7 +152,8 @@ fun ReadiumNavigation(
                 onNavigateToEditProfile = { navController.navigate(Screen.EditProfile.route) },
                 onNavigateToCreateThematicList = { navController.navigate((Screen.CreateThematicList.route)) },
                 onNavigateToMyBooks = { navController.navigate(Screen.MyBooks.route) },
-                onNavigateToProposals = { navController.navigate(Screen.TradeProposals.route) }
+                onNavigateToProposals = { navController.navigate(Screen.TradeProposals.route) },
+                onNavigateToCreateBookClub = { navController.navigate(Screen.CreateBookClub1.route) } // Navegar para a criação de clubes de leitura
             )
         }
 

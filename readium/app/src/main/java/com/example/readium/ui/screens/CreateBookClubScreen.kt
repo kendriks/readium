@@ -62,7 +62,7 @@ fun CreateBookClubScreen1(
 ) {
     Scaffold(
         topBar = { CreateClubTopBar(onNavigateBack = onNavigateBack) },
-        bottomBar = { ReadiumBottomBar(onHomeClick = onNavigateToHome, onCreateClick = { }, onProfileClick = { }) }
+        bottomBar = { ReadiumBottomBar(onHomeClick = onNavigateToHome, onCreateClick = { onNavigateToNext() }, onProfileClick = { }) }
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -167,7 +167,7 @@ fun CreateBookClubScreen2(
 
     Scaffold(
         topBar = { CreateClubTopBar(onNavigateBack = onNavigateBack) },
-        bottomBar = { ReadiumBottomBar(onHomeClick = onNavigateToHome, onCreateClick = { }, onProfileClick = { }) }
+        bottomBar = { ReadiumBottomBar(onHomeClick = onNavigateToHome, onCreateClick = { onCreateClub() }, onProfileClick = { }) }
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
