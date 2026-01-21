@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -17,6 +18,7 @@ import com.example.readium.ui.screens.*
 import com.example.readium.viewmodel.*
 import com.google.firebase.auth.FirebaseAuth
 import com.example.readium.repository.BookClubRepository
+import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -48,6 +50,7 @@ sealed class Screen(val route: String) {
     object EditBook : Screen("edit_book")
     object BookDetails : Screen("book_details")
     object TradeProposals : Screen("trade_proposals")
+    object AddPost : Screen("add_post")
 }
 
 @Composable
@@ -133,6 +136,7 @@ fun ReadiumNavigation(
                 onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
                 onNavigateToBookClubs = { navController.navigate(Screen.BookClubs.route) },
                 onNavigateToSearchTrade = { navController.navigate(Screen.SearchTrade.route) },
+                onNavigateToAddPost = { navController.navigate(Screen.AddPost.route) },
                 authViewModel = authViewModel
             )
         }
@@ -358,6 +362,45 @@ fun ReadiumNavigation(
                 viewModel = clubViewModel,
                 currentUserId = currentUser?.uid ?: "",
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.AddPost.route) {
+            val firebaseUser by authViewModel.user.collectAsState()
+            val userProfile by authViewModel.userProfile.collectAsState()
+            val userId = firebaseUser?.uid.orEmpty()
+
+            val postRepository = remember { com.example.readium.repository.PostRepository() }
+            val coroutineScope = rememberCoroutineScope()
+
+            AddPostScreen(
+                userName = userProfile?.name ?: "Usuário",
+                userBooks = booksViewModel.books,
+
+                onPublish = { post ->
+                    if (userId.isNotBlank()) {
+                        val finalPost = post.copy(ownerId = userId)
+
+                        coroutineScope.launch {
+                            postRepository.addPost(finalPost)
+                            navController.popBackStack()
+                        }
+                    }
+                },
+
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+
+                onNavigateHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+
+                onNavigateProfile = {
+                    navController.navigate(Screen.Profile.route)
+                }
             )
         }
     }
