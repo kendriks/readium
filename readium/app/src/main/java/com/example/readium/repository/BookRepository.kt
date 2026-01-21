@@ -19,15 +19,21 @@ class BookRepository {
         userId: String,
         userName: String?
     ) {
-        val newBook = book.copy(
-            ownerId = userId,
-            ownerDisplayName = userName
-        )
-
-        val docRef = booksRef.add(newBook).await()
+        val docRef = booksRef.document()
         val bookId = docRef.id
 
-        if (!book.coverUrl.isNullOrBlank() && book.coverUrl!!.startsWith("content://")) {
+        var newBook = book.copy(
+            id = bookId,
+            ownerId = userId,
+            ownerDisplayName = userName,
+            coverUrl = null // evita salvar content://
+        )
+
+        docRef.set(newBook).await()
+
+        if (!book.coverUrl.isNullOrBlank() &&
+            book.coverUrl!!.startsWith("content://")
+        ) {
             val downloadUrl = uploadBookCover(bookId, book.coverUrl!!)
             val finalUrl = "$downloadUrl?ts=${System.currentTimeMillis()}"
 
