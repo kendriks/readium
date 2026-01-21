@@ -5,17 +5,44 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.AddBox
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,53 +53,48 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.readium.data.model.Book
 import com.example.readium.data.model.BookStatus
-import com.example.readium.ui.theme.*
-import com.example.readium.viewmodel.AddBookUiState
-import java.util.Date
+import com.example.readium.ui.theme.ReadiumBackground
+import com.example.readium.ui.theme.ReadiumGrayMedium
+import com.example.readium.ui.theme.ReadiumOnBackground
+import com.example.readium.ui.theme.ReadiumOnSurface
+import com.example.readium.ui.theme.ReadiumPrimary
+import com.example.readium.ui.theme.ReadiumWhite
 
 @Composable
-fun AddBookScreen(
-    uiState: AddBookUiState,
+fun EditBookScreen(
+    book: Book,
     onSave: (Book) -> Unit,
     onNavigateBack: () -> Unit,
-    onNavigateHome: () -> Unit,
-    onNavigateProfile: () -> Unit
+    onNavigateToHome: () -> Unit,
+    onNavigateToProfile: () -> Unit,
+    onNavigateToMyBooks: () -> Unit
 ) {
-    var title by remember { mutableStateOf("") }
-    var authors by remember { mutableStateOf("") }
-    var publisher by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var selectedImageUri by remember { mutableStateOf<String?>(null) }
-    var status by remember { mutableStateOf(BookStatus.TO_READ) }
-    var availableForTrade by remember { mutableStateOf(false) }
+    var title by remember { mutableStateOf(book.title) }
+    var authors by remember { mutableStateOf(book.authors.joinToString(", ")) }
+    var publisher by remember { mutableStateOf(book.publisher.orEmpty()) }
+    var description by remember { mutableStateOf(book.description.orEmpty()) }
+    var status by remember { mutableStateOf(book.status) }
+    var availableForTrade by remember { mutableStateOf(book.availableForTrade) }
+    var coverUrl by remember { mutableStateOf(book.coverUrl) }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
-        selectedImageUri = uri?.toString()
+        coverUrl = uri?.toString()
     }
 
-
-    LaunchedEffect(uiState.foundBook) {
-        uiState.foundBook?.let {
-            title = it.title
-            authors = it.authors.joinToString(", ")
-            publisher = it.publisher.orEmpty()
-            description = it.description.orEmpty()
-            // CORREÇÃO: Atualiza a variável de estado da imagem com a URL do livro encontrado
-            selectedImageUri = it.coverUrl
-        }
-    }
 
     Scaffold(
         topBar = {
-            AddBookTopBar(onNavigateBack = onNavigateBack)
+            EditBookTopBar(
+                onNavigateBack = onNavigateBack
+            )
         },
         bottomBar = {
             ReadiumBottomBar(
-                onHomeClick = onNavigateHome,
-                onCreateClick = {},
-                onProfileClick = onNavigateProfile
+                onHomeClick = onNavigateToHome,
+                onCreateClick = { /* não usado aqui */ },
+                onProfileClick = onNavigateToProfile
             )
         }
     ) { paddingValues ->
@@ -91,22 +113,20 @@ fun AddBookScreen(
                         .padding(16.dp)
                 ) {
                     Text(
-                        text = "Adicionar livro",
+                        text = "Editar livro",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = ReadiumBlack
+                        color = ReadiumOnBackground
                     )
                 }
             }
 
-            /* Capa do livro */
             item {
                 FormCard {
-
                     Text(
                         text = "Capa do livro",
                         fontWeight = FontWeight.Bold,
-                        color = ReadiumBlack
+                        color = ReadiumOnBackground
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -122,167 +142,109 @@ fun AddBookScreen(
                             },
                         contentAlignment = Alignment.Center
                     ) {
-
-                        if (selectedImageUri != null) {
+                        if (!coverUrl.isNullOrBlank()) {
                             AsyncImage(
-                                model = selectedImageUri,
-                                contentDescription = "Capa do livro",
+                                model = coverUrl,
+                                contentDescription = null,
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
                             )
                         } else {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = null,
-                                    tint = ReadiumGrayMedium,
-                                    modifier = Modifier.size(32.dp)
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Selecionar imagem",
-                                    fontSize = 12.sp,
-                                    color = ReadiumGrayMedium
-                                )
-                            }
+                            Text("Selecionar imagem", color = ReadiumGrayMedium)
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text(
-                        text = "Formatos aceitos: png, jpg, jpeg",
-                        fontSize = 12.sp,
-                        color = ReadiumGrayMedium
-                    )
                 }
             }
 
-            /* Dados principais */
             item {
                 FormCard {
                     ReadiumTextField(
                         label = "Título",
                         value = title,
                         onValueChange = { title = it },
-                        placeholder = "Digite o título do livro"
+                        placeholder = "Título do livro"
                     )
-
-                    Spacer(Modifier.height(12.dp))
 
                     ReadiumTextField(
                         label = "Autores",
                         value = authors,
                         onValueChange = { authors = it },
-                        placeholder = "Ex: J. K. Rowling, George R. R. Martin"
+                        placeholder = "Autores"
                     )
-
-                    Spacer(Modifier.height(12.dp))
 
                     ReadiumTextField(
                         label = "Editora",
                         value = publisher,
                         onValueChange = { publisher = it },
-                        placeholder = "Nome da editora"
+                        placeholder = "Editora"
                     )
                 }
             }
 
-            /* Descrição */
             item {
                 FormCard {
                     ReadiumTextField(
                         label = "Descrição",
                         value = description,
                         onValueChange = { description = it },
-                        placeholder = "Escreva uma breve descrição do livro",
+                        placeholder = "Descrição",
                         singleLine = false,
                         modifier = Modifier.height(120.dp)
                     )
                 }
             }
 
-            /* Status + troca */
             item {
                 FormCard {
-                    StatusDropdown(status) { status = it }
+                    StatusDropdown(
+                        selected = status,
+                        onSelected = { status = it }
+                    )
 
                     Spacer(Modifier.height(12.dp))
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        ReadiumCheckbox(
-                            checked = availableForTrade,
-                            onCheckedChange = { availableForTrade = it },
-                            label = "Disponível para troca"
-                        )
-                    }
+                    ReadiumCheckbox(
+                        checked = availableForTrade,
+                        onCheckedChange = { availableForTrade = it },
+                        label = "Disponível para troca"
+                    )
                 }
             }
 
-            /* Capa (redundante se já mostrada acima, mas mantendo a lógica original caso queira exibir novamente) */
-            /* Nota: No código original havia um bloco duplicado exibindo a imagem novamente aqui embaixo.
-               Se quiser remover a duplicação visual, pode remover este bloco `if`.
-               Mantive conforme o original para preservar a estrutura, apenas com a correção do estado.
-            */
-            if (selectedImageUri?.isNotBlank() ?: false) {
-                item {
-                    FormCard {
-                        AsyncImage(
-                            model = selectedImageUri,
-                            contentDescription = "Capa do livro",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(180.dp),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                }
-            }
-
-            /* Salvar */
             item {
-                Column(
+                Button(
+                    onClick = {
+                        onSave(
+                            book.copy(
+                                title = title.trim(),
+                                authors = authors.split(",").map { it.trim() }.filter { it.isNotEmpty() },
+                                publisher = publisher.ifBlank { null },
+                                description = description.ifBlank { null },
+                                coverUrl = coverUrl,
+                                status = status,
+                                availableForTrade = availableForTrade
+                            )
+                        )
+                        onNavigateToMyBooks()
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
+                        .height(52.dp),
+                    colors = ButtonDefaults.buttonColors(ReadiumPrimary)
                 ) {
-                    Button(
-                        onClick = {
-                            onSave(
-                                Book(
-                                    title = title.trim(),
-                                    authors = authors.split(",").map { it.trim() }.filter { it.isNotEmpty() },
-                                    isbn = null, // removido
-                                    publisher = publisher.ifBlank { null },
-                                    description = description.ifBlank { null },
-                                    coverUrl = selectedImageUri,
-                                    status = status,
-                                    availableForTrade = availableForTrade,
-                                    createdAt = Date(),
-                                    ownerId = ""
-                                )
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(52.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = ReadiumPrimary)
-                    ) {
-                        Text("Salvar livro", fontWeight = FontWeight.Bold)
-                    }
+                    Text("Salvar alterações", fontWeight = FontWeight.Bold)
                 }
             }
 
-            item { Spacer(Modifier.height(80.dp)) }
+            /* espaço extra pra não colar na bottom bar */
+            item { Spacer(modifier = Modifier.height(12.dp)) }
         }
     }
 }
 
-/* ================= COMPONENTES ================= */
-
 @Composable
-private fun AddBookTopBar(
+private fun EditBookTopBar(
     onNavigateBack: () -> Unit
 ) {
     Box(
@@ -313,7 +275,7 @@ private fun AddBookTopBar(
                 }
 
                 Text(
-                    text = "Novo livro",
+                    text = "Editar livro",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = ReadiumWhite,
@@ -484,76 +446,6 @@ private fun BottomBarItem(
             text = label,
             fontSize = 11.sp,
             color = if (isSelected) ReadiumPrimary else ReadiumGrayMedium
-        )
-    }
-}
-
-@Composable
-fun ReadiumTextField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    error: String = "",
-    singleLine: Boolean = true,
-    modifier: Modifier = Modifier
-) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = label,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
-            color = ReadiumOnBackground,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
-            isError = error.isNotEmpty(),
-            singleLine = singleLine,
-            textStyle = LocalTextStyle.current.copy(color = ReadiumOnBackground),
-            placeholder = {
-                Text(
-                    text = placeholder,
-                    color = ReadiumOnSurface.copy(alpha = 0.6f)
-                )
-            }
-        )
-
-        if (error.isNotEmpty()) {
-            Text(
-                text = error,
-                color = ReadiumError,
-                fontSize = 12.sp,
-                modifier = Modifier.padding(top = 4.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun ReadiumCheckbox(
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    label: String
-) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Checkbox(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = CheckboxDefaults.colors(
-                checkedColor = ReadiumPrimary,
-                uncheckedColor = ReadiumGrayMedium,
-                checkmarkColor = ReadiumWhite
-            )
-        )
-        Spacer(Modifier.width(8.dp))
-        Text(
-            text = label,
-            color = ReadiumOnBackground,
-            fontSize = 16.sp
         )
     }
 }
