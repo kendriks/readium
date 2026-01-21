@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -17,6 +18,7 @@ import com.example.readium.ui.screens.*
 import com.example.readium.viewmodel.*
 import com.google.firebase.auth.FirebaseAuth
 import com.example.readium.repository.BookClubRepository
+import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -48,6 +50,7 @@ sealed class Screen(val route: String) {
     object EditBook : Screen("edit_book")
     object BookDetails : Screen("book_details")
     object TradeProposals : Screen("trade_proposals")
+    object AddPost : Screen("add_post")
 }
 
 @Composable
@@ -158,7 +161,11 @@ fun ReadiumNavigation(
         }
 
         composable(Screen.EditProfile.route) {
-            EditProfileScreen(onNavigateBack = { navController.popBackStack() }, onNavigateToHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.EditProfile.route) { inclusive = true } } }, authViewModel = authViewModel)
+            EditProfileScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.EditProfile.route) { inclusive = true } } },
+                authViewModel = authViewModel
+            )
         }
         composable(Screen.Friends.route) {
             FriendsScreen(onNavigateBack = { navController.popBackStack() }, onNavigateToHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Profile.route) { inclusive = true } } }, onNavigateToProfile = { navController.navigate(Screen.Profile.route) }, friendsViewModel = friendsViewModel)
@@ -181,7 +188,6 @@ fun ReadiumNavigation(
                 }
             }
 
-            // CORREÇÃO: Bloco duplicado removido. Esta é a única chamada correta.
             MyBooksScreen(
                 viewModel = booksViewModel,
                 userId = userId,
@@ -292,19 +298,46 @@ fun ReadiumNavigation(
         composable(Screen.AddBook.route) {
             val firebaseUser by authViewModel.user.collectAsState()
             val userProfile by authViewModel.userProfile.collectAsState()
+
             val uId = firebaseUser?.uid.orEmpty()
             val userName = userProfile?.name
+
+            // Lógica para montar a string de localização
+            val userLocation = if (!userProfile?.city.isNullOrBlank() && !userProfile?.state.isNullOrBlank()) {
+                "${userProfile!!.city} - ${userProfile!!.state}"
+            } else {
+                userProfile?.city ?: userProfile?.state
+            }
+
             val selectedBook = navController.previousBackStackEntry?.savedStateHandle?.get<Book>("book")
             val uiState = remember { AddBookUiState(foundBook = selectedBook) }
-            AddBookScreen(uiState = uiState, onSave = { book -> if (uId.isNotBlank()) { booksViewModel.saveBook(book = book, userId = uId, userName = userName) }; navController.navigate(Screen.MyBooks.route) }, onNavigateBack = { navController.popBackStack() }, onNavigateHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Home.route) { inclusive = true } } }, onNavigateProfile = { navController.navigate(Screen.Profile.route) })
+
+            AddBookScreen(
+                uiState = uiState,
+                onSave = { book ->
+                    if (uId.isNotBlank()) {
+                        // Agora passamos userLocation para o ViewModel
+                        booksViewModel.saveBook(
+                            book = book,
+                            userId = uId,
+                            userName = userName,
+                            userLocation = userLocation
+                        )
+                    }
+                    navController.navigate(Screen.MyBooks.route)
+                },
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Home.route) { inclusive = true } } },
+                onNavigateProfile = { navController.navigate(Screen.Profile.route) }
+            )
         }
+
         composable(Screen.SearchTrade.route) { SearchTradeScreen(viewModel = tradeViewModel, onNavigateBack = { navController.popBackStack() }) }
         composable(Screen.TradeProposals.route) { TradeProposalsScreen(viewModel = tradeViewModel, onNavigateBack = { navController.popBackStack() }) }
 
-        // --- ROTAS DO CLUBE DE LEITURA (Atualizadas) ---
+        // --- ROTAS DO CLUBE DE LEITURA ---
 
         composable(Screen.CreateBookClub1.route) {
-            // Usa o clubViewModel compartilhado
             CreateBookClubScreen1(
                 viewModel = clubViewModel,
                 onNavigateBack = { navController.popBackStack() },
@@ -326,7 +359,6 @@ fun ReadiumNavigation(
                             ownerId = currentUser.uid,
                             ownerName = userProfile?.name ?: "Usuário",
                             onSuccess = {
-                                // Volta para a home limpo
                                 navController.navigate(Screen.Home.route) {
                                     popUpTo(Screen.Home.route) { inclusive = true }
                                 }
@@ -360,6 +392,45 @@ fun ReadiumNavigation(
                 viewModel = clubViewModel,
                 currentUserId = currentUser?.uid ?: "",
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.AddPost.route) {
+            val firebaseUser by authViewModel.user.collectAsState()
+            val userProfile by authViewModel.userProfile.collectAsState()
+            val userId = firebaseUser?.uid.orEmpty()
+
+            val postRepository = remember { com.example.readium.repository.PostRepository() }
+            val coroutineScope = rememberCoroutineScope()
+
+            AddPostScreen(
+                userName = userProfile?.name ?: "Usuário",
+                userBooks = booksViewModel.books,
+
+                onPublish = { post ->
+                    if (userId.isNotBlank()) {
+                        val finalPost = post.copy(ownerId = userId)
+
+                        coroutineScope.launch {
+                            postRepository.addPost(finalPost)
+                            navController.popBackStack()
+                        }
+                    }
+                },
+
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+
+                onNavigateHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+
+                onNavigateProfile = {
+                    navController.navigate(Screen.Profile.route)
+                }
             )
         }
     }

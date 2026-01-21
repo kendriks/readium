@@ -24,14 +24,16 @@ class TradeRepository {
                 doc.toObject(Book::class.java)?.apply { id = doc.id }
             }
 
-            // Filtragem local por Título ou Gênero (Categorias)
+            // Filtragem local por Título, Gênero OU Localização
             if (query.isBlank()) {
                 allTradeableBooks
             } else {
                 val lowercaseQuery = query.lowercase()
                 allTradeableBooks.filter { book ->
                     book.title.lowercase().contains(lowercaseQuery) ||
-                            book.categories.any { it.lowercase().contains(lowercaseQuery) }
+                            book.categories.any { it.lowercase().contains(lowercaseQuery) } ||
+                            // Verifica se a localização do dono contém o termo pesquisado
+                            (book.ownerLocation?.lowercase()?.contains(lowercaseQuery) == true)
                 }
             }
         } catch (e: Exception) {

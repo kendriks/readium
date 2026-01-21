@@ -10,8 +10,22 @@ class FriendsRepository {
 
     private val db = FirebaseFirestore.getInstance()
 
-    // Busca a lista de amigos.
-    // Lida com a limitação do Firestore de buscar no máximo 10 IDs no "whereIn"
+
+    suspend fun getFriendsIds(userId: String): List<String> {
+        return try {
+            val doc = db.collection("friends").document(userId).get().await()
+            val friendIds = doc.get("ids_friends") as? List<String> ?: emptyList()
+
+            if (friendIds.isEmpty()) return emptyList()
+
+           return friendIds
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
     suspend fun getFriends(userId: String): List<User> {
         return try {
             val doc = db.collection("friends").document(userId).get().await()

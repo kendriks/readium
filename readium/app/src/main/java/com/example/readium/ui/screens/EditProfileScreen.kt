@@ -49,22 +49,27 @@ fun EditProfileScreen(
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var bio by remember { mutableStateOf("") }
+    var city by remember { mutableStateOf("") }
+    var state by remember { mutableStateOf("") }
+
     var password by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<String?>(null) }
     var isSaving by remember { mutableStateOf(false) }
-    
-    //carregar dados do usuário quando o perfil estiver disponível
+
+    // Carregar dados
     LaunchedEffect(userProfile) {
         userProfile?.let {
             name = it.name
             email = it.email
             bio = it.biography
+            city = it.city
+            state = it.state
         }
     }
 
-    //navegar de volta ao concluir atualização e resetar estado
+    // Feedback de sucesso/erro
     LaunchedEffect(updateState) {
-        when (val state = updateState) {
+        when (val st = updateState) {
             is ProfileUpdateState.Success -> {
                 isSaving = false
                 authViewModel.resetProfileUpdateState()
@@ -72,14 +77,13 @@ fun EditProfileScreen(
             }
             is ProfileUpdateState.Error -> {
                 isSaving = false
-                snackbarHostState.showSnackbar(state.message)
+                snackbarHostState.showSnackbar(st.message)
                 authViewModel.resetProfileUpdateState()
             }
             else -> {}
         }
     }
 
-    //launcher para selecionar imagem
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
@@ -106,7 +110,7 @@ fun EditProfileScreen(
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp, vertical = 24.dp)
         ) {
-            //icone de edição
+            // -- FOTO DE PERFIL --
             item {
                 Box(
                     modifier = Modifier
@@ -130,9 +134,7 @@ fun EditProfileScreen(
                                 AsyncImage(
                                     model = photoUrl,
                                     contentDescription = "avatar",
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(CircleShape),
+                                    modifier = Modifier.fillMaxSize().clip(CircleShape),
                                     contentScale = ContentScale.Crop
                                 )
                             } else {
@@ -144,8 +146,7 @@ fun EditProfileScreen(
                                 )
                             }
                         }
-
-                        //icone de edição
+                        // ícone de lápis
                         Box(
                             modifier = Modifier
                                 .size(24.dp)
@@ -154,167 +155,103 @@ fun EditProfileScreen(
                                 .align(Alignment.BottomEnd),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = "Editar foto",
-                                tint = ReadiumWhite,
-                                modifier = Modifier.size(14.dp)
-                            )
+                            Icon(Icons.Default.Edit, "Editar", tint = ReadiumWhite, modifier = Modifier.size(14.dp))
                         }
                     }
                 }
             }
 
-            //alterar foto de perfil
+            // Títulos foto
             item {
                 Text(
                     text = "Alterar foto de perfil",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = ReadiumBlack,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 4.dp),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    fontSize = 16.sp, fontWeight = FontWeight.Bold, color = ReadiumBlack,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
                 Text(
                     text = "São aceitos arquivos .png, .jpe e .jpeg",
-                    fontSize = 12.sp,
-                    color = ReadiumGrayMedium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 24.dp),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    fontSize = 12.sp, color = ReadiumGrayMedium,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
             }
 
-            //alterar nome
-            item {
-                EditFieldSection(
-                    icon = Icons.Default.Edit,
-                    label = "Alterar nome",
-                    value = name,
-                    onValueChange = { name = it },
-                    placeholder = "Name"
-                )
-            }
+            // Campos Nome e Email
+            item { EditFieldSection(Icons.Default.Edit, "Alterar nome", name, { name = it }, "Name") }
+            item { EditFieldSection(Icons.Default.Email, "Alterar email", email, { }, "Email") }
 
-            //alterar email
+            // Campo Biografia
             item {
-                EditFieldSection(
-                    icon = Icons.Default.Email,
-                    label = "Alterar email",
-                    value = email,
-                    onValueChange = { },
-                    placeholder = "Email"
-                )
-            }
-
-            //alterar biografia
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = null,
-                            tint = ReadiumBlack,
-                            modifier = Modifier.size(16.dp)
-                        )
+                Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
+                        Icon(Icons.Default.Edit, null, tint = ReadiumBlack, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Alterar biografia",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = ReadiumBlack
-                        )
+                        Text("Alterar biografia", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = ReadiumBlack)
                     }
-
                     OutlinedTextField(
-                        value = bio,
-                        onValueChange = { bio = it },
-                        placeholder = {
-                            Text(
-                                text = "Conte um pouco sobre você",
-                                color = ReadiumGrayMedium
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 120.dp),
+                        value = bio, onValueChange = { bio = it },
+                        placeholder = { Text("Conte um pouco sobre você", color = ReadiumGrayMedium) },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
                         shape = RoundedCornerShape(8.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = ReadiumPrimary,
-                            unfocusedBorderColor = ReadiumGrayMedium.copy(alpha = 0.5f),
-                            focusedContainerColor = ReadiumWhite,
-                            unfocusedContainerColor = ReadiumWhite
+                            focusedBorderColor = ReadiumPrimary, unfocusedBorderColor = ReadiumGrayMedium.copy(alpha = 0.5f),
+                            focusedContainerColor = ReadiumWhite, unfocusedContainerColor = ReadiumWhite
                         )
                     )
                 }
             }
 
-            //alterar senha
+            // -- NOVO: CAMPOS DE LOCALIZAÇÃO --
             item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = null,
-                            tint = ReadiumBlack,
-                            modifier = Modifier.size(16.dp)
+                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                    // Cidade
+                    Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                        EditFieldSection(
+                            icon = Icons.Default.LocationOn,
+                            label = "Cidade",
+                            value = city,
+                            onValueChange = { city = it },
+                            placeholder = "Ex: São Paulo"
                         )
+                    }
+                    // Estado (UF)
+                    Column(modifier = Modifier.width(100.dp)) {
+                        EditFieldSection(
+                            icon = Icons.Default.Map,
+                            label = "UF",
+                            value = state,
+                            onValueChange = { if (it.length <= 2) state = it.uppercase() },
+                            placeholder = "SP"
+                        )
+                    }
+                }
+            }
+
+            // Campo Senha
+            item {
+                Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
+                        Icon(Icons.Default.Lock, null, tint = ReadiumBlack, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Alterar senha",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = ReadiumBlack
-                        )
+                        Text("Alterar senha", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = ReadiumBlack)
                     }
 
                     val isPasswordError = password.isNotEmpty() && !authViewModel.validatePassword(password)
-
                     OutlinedTextField(
-                        value = password,
-                        onValueChange = { password = it },
-                        placeholder = {
-                            Text(
-                                text = "**********",
-                                color = ReadiumGrayMedium
-                            )
-                        },
+                        value = password, onValueChange = { password = it },
+                        placeholder = { Text("**********", color = ReadiumGrayMedium) },
                         visualTransformation = PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp),
                         isError = isPasswordError,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = ReadiumPrimary,
-                            unfocusedBorderColor = ReadiumGrayMedium.copy(alpha = 0.5f),
-                            focusedContainerColor = ReadiumWhite,
-                            unfocusedContainerColor = ReadiumWhite,
-                            errorBorderColor = ReadiumError
+                            focusedBorderColor = ReadiumPrimary, unfocusedBorderColor = ReadiumGrayMedium.copy(alpha = 0.5f),
+                            focusedContainerColor = ReadiumWhite, unfocusedContainerColor = ReadiumWhite, errorBorderColor = ReadiumError
                         )
                     )
-
                     if (isPasswordError) {
                         Text(
                             text = "A senha deve ter no mínimo 8 caracteres, contendo letras e números.",
-                            color = ReadiumError,
-                            fontSize = 12.sp,
-                            modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                            color = ReadiumError, fontSize = 12.sp, modifier = Modifier.padding(start = 8.dp, top = 4.dp)
                         )
                     }
                 }
@@ -325,53 +262,35 @@ fun EditProfileScreen(
                     onClick = {
                         if (password.isNotEmpty()) {
                             if (!authViewModel.validatePassword(password)) {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("Senha inválida: A senha deve ter no mínimo 8 caracteres, contendo letras e números.")
-                                }
+                                scope.launch { snackbarHostState.showSnackbar("Senha inválida.") }
                                 return@Button
                             }
-
                             authViewModel.updatePassword(password)
-
                         }
 
-                        // 2. Lógica de Atualizar Perfil (Nome/Bio/Foto)
-                        // Só chama se não estivermos apenas trocando a senha (ou chama ambos)
+                        // 2. Atualizar perfil (incluindo Cidade e Estado)
                         authViewModel.updateUserProfile(
                             name = name,
                             biography = bio,
-                            profilePhotoUri = selectedImageUri
+                            profilePhotoUri = selectedImageUri,
+                            city = city,   // Passa novo valor
+                            state = state  // Passa novo valor
                         )
                     },
                     enabled = !isSaving,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp)
-                        .height(56.dp),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp).height(56.dp),
                     shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ReadiumPrimary,
-                        contentColor = ReadiumWhite
-                    )
+                    colors = ButtonDefaults.buttonColors(containerColor = ReadiumPrimary, contentColor = ReadiumWhite)
                 ) {
                     if (isSaving) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = ReadiumWhite
-                        )
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = ReadiumWhite)
                     } else {
-                        Text(
-                            text = "Salvar alterações",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text("Salvar alterações", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
 
-            item {
-                Spacer(modifier = Modifier.height(80.dp))
-            }
+            item { Spacer(modifier = Modifier.height(80.dp)) }
         }
     }
 }
@@ -380,34 +299,17 @@ fun EditProfileScreen(
 private fun EditProfileTopBar(onNavigateBack: () -> Unit) {
     Box(modifier = Modifier.fillMaxWidth().padding(top = 34.dp, bottom = 0.dp)) {
         Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(76.dp),
-            color = ReadiumPrimary,
-            shape = RoundedCornerShape(0.dp),
-            tonalElevation = 2.dp
+            modifier = Modifier.fillMaxWidth().height(76.dp),
+            color = ReadiumPrimary, shape = RoundedCornerShape(0.dp), tonalElevation = 2.dp
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(start = 0.dp, end = 8.dp),
+                modifier = Modifier.fillMaxSize().padding(start = 0.dp, end = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onNavigateBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Voltar",
-                        tint = ReadiumWhite
-                    )
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar", tint = ReadiumWhite)
                 }
-
-                Text(
-                    text = "Configurações",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = ReadiumWhite,
-                    modifier = Modifier.weight(1f)
-                )
+                Text("Configurações", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = ReadiumWhite, modifier = Modifier.weight(1f))
             }
         }
     }
@@ -421,109 +323,42 @@ private fun EditFieldSection(
     onValueChange: (String) -> Unit,
     placeholder: String
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 8.dp)
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = ReadiumBlack,
-                modifier = Modifier.size(16.dp)
-            )
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
+            Icon(imageVector = icon, contentDescription = null, tint = ReadiumBlack, modifier = Modifier.size(16.dp))
             Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = label,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = ReadiumBlack
-            )
+            Text(text = label, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = ReadiumBlack)
         }
-
         OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = {
-                Text(
-                    text = placeholder,
-                    color = ReadiumGrayMedium
-                )
-            },
+            value = value, onValueChange = onValueChange,
+            placeholder = { Text(text = placeholder, color = ReadiumGrayMedium) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = ReadiumPrimary,
-                unfocusedBorderColor = ReadiumGrayMedium.copy(alpha = 0.5f),
-                focusedContainerColor = ReadiumWhite,
-                unfocusedContainerColor = ReadiumWhite
+                focusedBorderColor = ReadiumPrimary, unfocusedBorderColor = ReadiumGrayMedium.copy(alpha = 0.5f),
+                focusedContainerColor = ReadiumWhite, unfocusedContainerColor = ReadiumWhite
             )
         )
     }
 }
 
 @Composable
-private fun ReadiumBottomBar(
-    onHomeClick: () -> Unit,
-    onCreateClick: () -> Unit,
-    onProfileClick: () -> Unit
-) {
+private fun ReadiumBottomBar(onHomeClick: () -> Unit, onCreateClick: () -> Unit, onProfileClick: () -> Unit) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(64.dp)
-            .background(ReadiumWhite)
-            .border(1.dp, ReadiumGrayMedium.copy(alpha = 0.2f)),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth().height(64.dp).background(ReadiumWhite).border(1.dp, ReadiumGrayMedium.copy(alpha = 0.2f)),
+        horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically
     ) {
-        BottomBarItem(
-            icon = Icons.Outlined.Home,
-            label = "home",
-            onClick = onHomeClick
-        )
-
-        BottomBarItem(
-            icon = Icons.Outlined.AddBox,
-            label = "criar",
-            onClick = onCreateClick
-        )
-
-        BottomBarItem(
-            icon = Icons.Outlined.Person,
-            label = "perfil",
-            onClick = onProfileClick
-        )
+        BottomBarItem(Icons.Outlined.Home, "home", onHomeClick)
+        BottomBarItem(Icons.Outlined.AddBox, "criar", onCreateClick)
+        BottomBarItem(Icons.Outlined.Person, "perfil", onProfileClick)
     }
 }
 
 @Composable
-private fun BottomBarItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    onClick: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            tint = ReadiumGrayMedium,
-            modifier = Modifier.size(24.dp)
-        )
+private fun BottomBarItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
+    Column(modifier = Modifier.clickable(onClick = onClick).padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Icon(imageVector = icon, contentDescription = label, tint = ReadiumGrayMedium, modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = label,
-            fontSize = 11.sp,
-            color = ReadiumGrayMedium
-        )
+        Text(text = label, fontSize = 11.sp, color = ReadiumGrayMedium)
     }
 }

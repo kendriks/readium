@@ -31,6 +31,7 @@ data class Book(
     // Dados do usuário
     var ownerId: String = "",
     var ownerDisplayName: String? = null,
+    var ownerLocation: String? = null,
 
     // Estado do livro
     var status: BookStatus = BookStatus.TO_READ,
@@ -46,8 +47,6 @@ data class Book(
     var localTemporaryField: String? = null
 
 ) : Serializable {
-
-    /* ======= Métodos utilitários ======= */
 
     fun getMainAuthor(): String =
         authors.firstOrNull().orEmpty()

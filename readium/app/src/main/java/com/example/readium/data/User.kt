@@ -6,6 +6,8 @@ data class User(
     val email: String = "",
     val profilePhotoUrl: String? = null,
     val biography: String = "",
+    val city: String = "",
+    val state: String = "",
     val createdAt: Long = System.currentTimeMillis()
 )
 
