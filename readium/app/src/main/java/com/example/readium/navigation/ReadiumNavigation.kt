@@ -89,7 +89,6 @@ fun ReadiumNavigation(
         navController = navController,
         startDestination = startDestination
     ) {
-        // ... (Rotas de Splash, Login, Register, Home permanecem iguais) ...
         composable(Screen.Splash.route) {
             SplashScreen(
                 onNavigateToLogin = { navController.navigate(Screen.Login.route) { popUpTo(Screen.Splash.route) { inclusive = true } } },
@@ -156,7 +155,6 @@ fun ReadiumNavigation(
             )
         }
 
-        // ... (Rotas de EditProfile, Friends, CreateThematicList, AddBooksOnList, MyBooks, SearchBook, AddBook, SearchTrade, TradeProposals permanecem iguais) ...
         composable(Screen.EditProfile.route) {
             EditProfileScreen(onNavigateBack = { navController.popBackStack() }, onNavigateToHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.EditProfile.route) { inclusive = true } } }, authViewModel = authViewModel)
         }
@@ -181,6 +179,7 @@ fun ReadiumNavigation(
                 }
             }
 
+            // CORREÇÃO: Bloco duplicado removido. Esta é a única chamada correta.
             MyBooksScreen(
                 viewModel = booksViewModel,
                 userId = userId,
@@ -190,8 +189,7 @@ fun ReadiumNavigation(
                         ?.set("book", book)
 
                     navController.navigate(Screen.BookDetails.route)
-                }
-                ,
+                },
                 onAddBookClick = {
                     navController.navigate(Screen.SearchBook.route)
                 },
@@ -209,10 +207,8 @@ fun ReadiumNavigation(
                     }
                 }
             )
-            val uId = firebaseUser?.uid.orEmpty()
-            LaunchedEffect(uId) { if (uId.isNotBlank()) booksViewModel.loadBooks(uId) }
-            MyBooksScreen(viewModel = booksViewModel, userId = uId, onBookClick = { }, onAddBookClick = { navController.navigate(Screen.SearchBook.route) })
         }
+
         composable(Screen.SearchBook.route) {
             val searchBookViewModel: SearchBookViewModel = viewModel()
             SearchBookScreen(viewModel = searchBookViewModel, onBookSelected = { book -> navController.currentBackStackEntry?.savedStateHandle?.set("book", book); navController.navigate(Screen.AddBook.route) }, onNavigateBack = { navController.popBackStack() }, onNavigateToHome = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Home.route) { inclusive = true } } }, onNavigateToProfile = { navController.navigate(Screen.Profile.route) }, onCreateBookManually = { navController.navigate(Screen.AddBook.route) })
@@ -249,7 +245,6 @@ fun ReadiumNavigation(
                 )
             }
         }
-
 
         composable(Screen.BookDetails.route) {
 
@@ -291,8 +286,6 @@ fun ReadiumNavigation(
                 )
             }
         }
-
-
 
         composable(Screen.AddBook.route) {
             val firebaseUser by authViewModel.user.collectAsState()
