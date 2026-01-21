@@ -40,7 +40,8 @@ fun ProfileScreen(
     friendsViewModel: FriendsViewModel = viewModel(),
     onNavigateToEditProfile: () -> Unit = {},
     onNavigateToCreateThematicList: () -> Unit = {},
-    onNavigateToProposals: () -> Unit = {}
+    onNavigateToProposals: () -> Unit = {},
+    onNavigateToCreateBookClub: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val friendsCount = friendsViewModel.friendsCount
@@ -58,7 +59,7 @@ fun ProfileScreen(
         bottomBar = {
             ReadiumBottomBar(
                 onHomeClick = onNavigateToHome,
-                onCreateClick = { /*ainda não implementado*/ },
+                onCreateClick = { onNavigateToCreateBookClub() },
                 onProfileClick = { }
             )
         }

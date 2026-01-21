@@ -43,7 +43,7 @@ fun ReadiumHomeScreen(
     onNavigateToProfile: () -> Unit = {},
     onNavigateToBookClubs: () -> Unit = {},
     onNavigateToSearchTrade: () -> Unit = {},
-    onNavigateToAddPost: () -> Unit = {},
+    onNavigateToCreateBookClub: () -> Unit = {},
     authViewModel: AuthViewModel = viewModel()
 ) {
     val userProfile by authViewModel.userProfile.collectAsState()
@@ -152,7 +152,7 @@ fun ReadiumHomeScreen(
         bottomBar = {
             ReadiumBottomBar(
                 onHomeClick = { },
-                onCreateClick = onNavigateToAddPost,
+                onCreateClick = { onNavigateToCreateBookClub() },
                 onProfileClick = onNavigateToProfile
             )
         }
