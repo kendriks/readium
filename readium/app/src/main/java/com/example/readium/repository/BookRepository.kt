@@ -17,7 +17,8 @@ class BookRepository {
     suspend fun addBook(
         book: Book,
         userId: String,
-        userName: String?
+        userName: String?,
+        userLocation: String?
     ) {
         val docRef = booksRef.document()
         val bookId = docRef.id
@@ -26,14 +27,13 @@ class BookRepository {
             id = bookId,
             ownerId = userId,
             ownerDisplayName = userName,
-            coverUrl = null // evita salvar content://
+            ownerLocation = userLocation,
+            coverUrl = null
         )
 
         docRef.set(newBook).await()
 
-        if (!book.coverUrl.isNullOrBlank() &&
-            book.coverUrl!!.startsWith("content://")
-        ) {
+        if (!book.coverUrl.isNullOrBlank() && book.coverUrl!!.startsWith("content://")) {
             val downloadUrl = uploadBookCover(bookId, book.coverUrl!!)
             val finalUrl = "$downloadUrl?ts=${System.currentTimeMillis()}"
 
@@ -42,64 +42,34 @@ class BookRepository {
     }
 
 
-    private suspend fun uploadBookCover(
-        bookId: String,
-        coverUri: String
-    ): String {
+    private suspend fun uploadBookCover(bookId: String, coverUri: String): String {
         val uri = coverUri.toUri()
-
         val ref = storage.reference.child("book_covers/$bookId.jpg")
-
         ref.putFile(uri).await()
-
         return ref.downloadUrl.await().toString()
     }
 
-
-    fun getUserBooks(
-        userId: String,
-        onResult: (List<Book>) -> Unit
-    ) {
-        booksRef
-            .whereEqualTo("ownerId", userId)
-            .addSnapshotListener { snapshot, _ ->
-
-                val books = snapshot?.documents?.mapNotNull { doc ->
-                    doc.toObject(Book::class.java)?.apply {
-                        id = doc.id
-                    }
-                }.orEmpty()
-
-                onResult(books)
-            }
+    fun getUserBooks(userId: String, onResult: (List<Book>) -> Unit) {
+        booksRef.whereEqualTo("ownerId", userId).addSnapshotListener { snapshot, _ ->
+            val books = snapshot?.documents?.mapNotNull { doc ->
+                doc.toObject(Book::class.java)?.apply { id = doc.id }
+            }.orEmpty()
+            onResult(books)
+        }
     }
-
 
     suspend fun updateBook(book: Book) {
         if (book.id.isBlank()) return
-
         var updatedBook = book
-
         if (!book.coverUrl.isNullOrBlank() && book.coverUrl!!.startsWith("content://")) {
             val downloadUrl = uploadBookCover(book.id, book.coverUrl!!)
-            updatedBook = book.copy(
-                coverUrl = "$downloadUrl?ts=${System.currentTimeMillis()}"
-            )
+            updatedBook = book.copy(coverUrl = "$downloadUrl?ts=${System.currentTimeMillis()}")
         }
-
-        booksRef
-            .document(book.id)
-            .set(updatedBook)
-            .await()
+        booksRef.document(book.id).set(updatedBook).await()
     }
-
 
     suspend fun deleteBook(book: Book) {
         if (book.id.isBlank()) return
-
-        booksRef
-            .document(book.id)
-            .delete()
-            .await()
+        booksRef.document(book.id).delete().await()
     }
 }

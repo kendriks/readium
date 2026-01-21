@@ -38,26 +38,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         return hasLetter && hasDigit
     }
 
-    fun updatePassword(newPassword: String) {
-        val user = _user.value
-        if (user != null) {
-            _profileUpdateState.value = ProfileUpdateState.Loading
-
-            user.updatePassword(newPassword)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        _profileUpdateState.value = ProfileUpdateState.Success
-                    } else {
-                        _profileUpdateState.value = ProfileUpdateState.Error(
-                            task.exception?.message ?: "Erro ao atualizar senha. Tente fazer login novamente."
-                        )
-                    }
-                }
-        } else {
-            _profileUpdateState.value = ProfileUpdateState.Error("Usuário não autenticado")
-        }
-    }
-
     private fun checkAuthState() {
         val currentUser = repository.getCurrentUser()
         _user.value = currentUser
@@ -146,19 +126,23 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val result = repository.getUserProfile(userId)
             result.fold(
-                onSuccess = { profile ->
-                    _userProfile.value = profile
-                },
-                onFailure = { /* Handle error silently */ }
+                onSuccess = { profile -> _userProfile.value = profile },
+                onFailure = { }
             )
         }
     }
-    
-    fun updateUserProfile(name: String, biography: String, profilePhotoUri: String? = null) {
+
+    fun updateUserProfile(
+        name: String,
+        biography: String,
+        profilePhotoUri: String? = null,
+        city: String = "",
+        state: String = ""
+    ) {
         viewModelScope.launch {
             _user.value?.uid?.let { userId ->
                 _profileUpdateState.value = ProfileUpdateState.Loading
-                val result = repository.updateUserProfile(userId, name, biography, profilePhotoUri)
+                val result = repository.updateUserProfile(userId, name, biography, profilePhotoUri, city, state)
                 result.fold(
                     onSuccess = {
                         loadUserProfile(userId)
@@ -174,21 +158,28 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun resetProfileUpdateState() {
-        _profileUpdateState.value = ProfileUpdateState.Idle
-    }
-    
-    fun clearAuthError() {
-        if (_authState.value is AuthState.Error) {
-            _authState.value = AuthState.Unauthenticated
+    fun updatePassword(newPassword: String) {
+        val user = _user.value
+        if (user != null) {
+            _profileUpdateState.value = ProfileUpdateState.Loading
+            user.updatePassword(newPassword)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        _profileUpdateState.value = ProfileUpdateState.Success
+                    } else {
+                        _profileUpdateState.value = ProfileUpdateState.Error(
+                            task.exception?.message ?: "Erro ao atualizar senha. Faça login novamente."
+                        )
+                    }
+                }
+        } else {
+            _profileUpdateState.value = ProfileUpdateState.Error("Usuário não autenticado")
         }
     }
-    
-    fun signOut() {
-        repository.signOut()
-        _user.value = null
-        _authState.value = AuthState.Unauthenticated
-    }
+
+    fun resetProfileUpdateState() { _profileUpdateState.value = ProfileUpdateState.Idle }
+    fun clearAuthError() { if (_authState.value is AuthState.Error) _authState.value = AuthState.Unauthenticated }
+    fun signOut() { repository.signOut(); _user.value = null; _authState.value = AuthState.Unauthenticated }
 }
 
 sealed class AuthState {
