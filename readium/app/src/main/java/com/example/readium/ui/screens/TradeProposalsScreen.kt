@@ -13,6 +13,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,8 +63,6 @@ fun TradeProposalsScreen(
                             proposal = proposal,
                             onAccept = { viewModel.respondToProposal(proposal, true) },
                             onReject = { viewModel.respondToProposal(proposal, false) }
-
-
                         )
                     }
                 }
@@ -99,7 +98,6 @@ fun ProposalCard(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Status ou Botões de Ação
             if (proposal.status == TradeStatus.PENDING) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -129,13 +127,27 @@ fun ProposalCard(
                 val statusColor = if (proposal.status == TradeStatus.ACCEPTED)
                     Color(0xFF4CAF50) else ReadiumError
 
-                Text(
-                    text = "Status: $statusText",
-                    fontWeight = FontWeight.Bold,
-                    color = statusColor,
-                    fontSize = 14.sp,
-                    modifier = Modifier.align(Alignment.End)
-                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.End
+                ) {
+                    Text(
+                        text = "Status: $statusText",
+                        fontWeight = FontWeight.Bold,
+                        color = statusColor,
+                        fontSize = 14.sp
+                    )
+
+                    if (proposal.status == TradeStatus.ACCEPTED) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Combine a troca com ${proposal.senderName}!",
+                            fontSize = 12.sp,
+                            color = ReadiumBlack.copy(alpha = 0.6f),
+                            fontStyle = FontStyle.Italic
+                        )
+                    }
+                }
             }
         }
     }
